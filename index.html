@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#1a120b">
 <title>Grind Log</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
   :root {
     --bg: #1a120b;
@@ -25,84 +28,45 @@
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
   html, body {
-    margin: 0;
-    padding: 0;
-    background: var(--bg);
-    color: var(--text);
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-size: 16px;
-    line-height: 1.4;
+    font-size: 16px; line-height: 1.4;
   }
 
   #app {
-    max-width: 480px;
-    margin: 0 auto;
-    min-height: 100vh;
-    background: var(--bg);
-    display: flex;
-    flex-direction: column;
-    position: relative;
+    max-width: 480px; margin: 0 auto; min-height: 100vh;
+    background: var(--bg); display: flex; flex-direction: column; position: relative;
   }
 
   /* ---------- Header ---------- */
   header {
-    position: sticky;
-    top: 0;
-    z-index: 20;
+    position: sticky; top: 0; z-index: 20;
     background: linear-gradient(180deg, #241810 0%, #1f160d 100%);
     border-bottom: 1px solid var(--border);
-    padding: 14px 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-height: 58px;
+    padding: 14px 16px; display: flex; align-items: center; gap: 12px; min-height: 58px;
   }
   header .title {
-    font-size: 1.2rem;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: 1.2rem; font-weight: 700; letter-spacing: 0.3px; flex: 1;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .back-btn {
-    background: none;
-    border: none;
-    color: var(--amber);
-    font-size: 1.6rem;
-    line-height: 1;
-    padding: 4px 6px;
-    cursor: pointer;
-    min-width: 40px;
+    background: none; border: none; color: var(--amber);
+    font-size: 1.6rem; line-height: 1; padding: 4px 6px; cursor: pointer; min-width: 40px;
   }
   .header-action {
-    background: none;
-    border: none;
-    color: var(--amber);
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    padding: 8px;
+    background: none; border: none; color: var(--amber);
+    font-size: 0.95rem; font-weight: 600; cursor: pointer; padding: 8px;
   }
 
   /* ---------- Content ---------- */
-  main {
-    flex: 1;
-    padding: 16px;
-    padding-bottom: 96px;
-  }
+  main { flex: 1; padding: 16px; padding-bottom: 96px; }
 
   /* ---------- Cards ---------- */
   .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 14px;
-    box-shadow: var(--shadow);
-    cursor: pointer;
-    transition: transform 0.08s ease;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 16px; margin-bottom: 14px;
+    box-shadow: var(--shadow); cursor: pointer; transition: transform 0.08s ease;
   }
   .card:active { transform: scale(0.985); }
   .card.static { cursor: default; }
@@ -112,28 +76,18 @@
   .bag-sub { color: var(--text-dim); font-size: 0.88rem; margin: 0; }
 
   .badge {
-    display: inline-block;
-    font-size: 0.72rem;
-    font-weight: 700;
-    padding: 3px 9px;
-    border-radius: 999px;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
+    display: inline-block; font-size: 0.72rem; font-weight: 700;
+    padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.4px;
   }
   .badge-active { background: var(--green-bg); color: var(--green); }
   .badge-finished { background: var(--surface-2); color: var(--text-dim); }
-  .badge-roast { background: var(--surface-2); color: var(--amber); }
 
   .row-between { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 
   .grind-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
   .chip {
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 5px 10px;
-    font-size: 0.78rem;
-    color: var(--text-dim);
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 5px 10px; font-size: 0.78rem; color: var(--text-dim);
   }
   .chip strong { color: var(--text); font-weight: 700; }
 
@@ -146,13 +100,7 @@
   .log-date { color: var(--text-dim); font-size: 0.76rem; margin-top: 8px; }
   .log-notes { margin-top: 8px; font-size: 0.88rem; color: var(--text-dim); font-style: italic; }
 
-  .scaled-badge {
-    display: inline-block;
-    font-size: 0.78rem;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 10px;
-  }
+  .scaled-badge { display: inline-block; font-size: 0.78rem; font-weight: 700; padding: 4px 10px; border-radius: 10px; }
   .scaled-good { background: var(--green-bg); color: var(--green); }
   .scaled-bad { background: var(--red-bg); color: var(--red); }
 
@@ -164,40 +112,34 @@
   /* ---------- Forms ---------- */
   .field { margin-bottom: 16px; }
   .field label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-dim); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .label-row label { margin: 0; }
   input[type=text], input[type=number], input[type=date], input[type=datetime-local], select, textarea {
-    width: 100%;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    color: var(--text);
-    font-size: 1rem;
-    padding: 13px 14px;
-    font-family: inherit;
-    -webkit-appearance: none;
-    appearance: none;
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; color: var(--text); font-size: 1rem; padding: 13px 14px;
+    font-family: inherit; -webkit-appearance: none; appearance: none;
   }
   textarea { resize: vertical; min-height: 80px; }
   input:focus, select:focus, textarea:focus { outline: none; border-color: var(--amber); }
   select {
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23d99a4e' stroke-width='3'><polyline points='6 9 12 15 18 9'/></svg>");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    padding-right: 38px;
+    background-repeat: no-repeat; background-position: right 14px center; padding-right: 38px;
   }
+
+  .info-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 1.5px solid var(--amber); background: none; color: var(--amber);
+    font-size: 0.95rem; font-weight: 700; font-style: italic; font-family: Georgia, serif;
+    cursor: pointer; line-height: 1; display: flex; align-items: center; justify-content: center; padding: 0;
+  }
+  .info-btn:active { background: var(--amber); color: #1a120b; }
 
   .seg { display: flex; flex-wrap: wrap; gap: 8px; }
   .seg-opt {
-    flex: 1 1 auto;
-    min-width: 0;
-    text-align: center;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 12px 10px;
-    font-size: 0.92rem;
-    color: var(--text-dim);
-    cursor: pointer;
-    user-select: none;
+    flex: 1 1 auto; min-width: 0; text-align: center;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 10px; font-size: 0.92rem; color: var(--text-dim);
+    cursor: pointer; user-select: none;
   }
   .seg-opt.sel { background: var(--amber); color: #1a120b; border-color: var(--amber); font-weight: 700; }
 
@@ -207,43 +149,20 @@
   .row2 { display: flex; gap: 12px; }
   .row2 > .field { flex: 1; }
 
-  .live-scaled {
-    margin-top: 4px;
-    padding: 14px;
-    border-radius: 12px;
-    text-align: center;
-    font-weight: 700;
-  }
+  .live-scaled { margin-top: 4px; padding: 14px; border-radius: 12px; text-align: center; font-weight: 700; }
   .live-scaled .num { font-size: 1.5rem; display: block; }
   .live-scaled .lbl { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; }
 
   /* ---------- Buttons ---------- */
-  .btn {
-    display: block;
-    width: 100%;
-    border: none;
-    border-radius: 14px;
-    padding: 16px;
-    font-size: 1.02rem;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: inherit;
-    margin-bottom: 10px;
-  }
+  .btn { display: block; width: 100%; border: none; border-radius: 14px; padding: 16px;
+    font-size: 1.02rem; font-weight: 700; cursor: pointer; font-family: inherit; margin-bottom: 10px; }
   .btn-primary { background: var(--amber); color: #1a120b; }
-  .btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
   .btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid var(--red); }
+  .btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
   .btn:active { filter: brightness(0.92); }
 
-  .fab {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: calc(100% - 32px);
-    max-width: 448px;
-    z-index: 15;
-  }
+  .fab { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    width: calc(100% - 32px); max-width: 448px; z-index: 15; }
   .fab .btn { box-shadow: var(--shadow); margin: 0; }
 
   .section-title { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-dim); margin: 22px 0 10px; }
@@ -254,16 +173,63 @@
   .info-grid div { color: var(--text-dim); }
   .info-grid b { color: var(--text); }
 
-  .hint { font-size: 0.78rem; color: var(--text-dim); margin-top: -6px; margin-bottom: 14px; }
+  .hint { font-size: 0.78rem; color: var(--text-dim); margin-top: 6px; }
 
-  .link-row {
-    display: flex; align-items: center; justify-content: space-between;
+  .link-row { display: flex; align-items: center; justify-content: space-between;
     background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
-    padding: 14px 16px; cursor: pointer; margin-bottom: 14px;
-  }
+    padding: 14px 16px; cursor: pointer; margin-bottom: 14px; }
   .link-row .arrow { color: var(--amber); font-size: 1.2rem; }
 
   .ref-method { font-weight: 700; font-size: 1rem; }
+
+  /* ---------- Recipe gallery ---------- */
+  .gallery-item {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 10px 14px; margin-bottom: 10px; cursor: pointer;
+  }
+  .gallery-item:active { transform: scale(0.99); }
+  .gallery-thumb { width: 48px; height: 60px; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; }
+  .gallery-name { font-weight: 600; }
+  .gallery-info { margin-left: auto; color: var(--amber); }
+
+  /* ---------- Recipe overlay ---------- */
+  .overlay {
+    position: fixed; inset: 0; z-index: 50;
+    background: rgba(0,0,0,0.72); display: flex; flex-direction: column;
+    justify-content: flex-end; align-items: center;
+  }
+  .recipe-sheet {
+    width: 100%; max-width: 480px; background: var(--surface);
+    border-top-left-radius: 22px; border-top-right-radius: 22px;
+    border: 1px solid var(--border); border-bottom: none;
+    max-height: 92vh; overflow-y: auto; padding: 8px 20px 28px;
+    animation: slideUp 0.22s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(40px); opacity: 0.6; } to { transform: translateY(0); opacity: 1; } }
+  .sheet-grip { width: 44px; height: 5px; border-radius: 3px; background: var(--border); margin: 8px auto 6px; }
+  .sheet-close {
+    position: sticky; top: 0; float: right; margin: -2px -6px 0 0;
+    background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+    width: 34px; height: 34px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; line-height: 1;
+  }
+  .recipe-hero {
+    background: radial-gradient(circle at 50% 38%, #33231600 0%, var(--surface) 72%);
+    text-align: center; padding: 6px 0 4px;
+  }
+  .recipe-hero-bg {
+    background: radial-gradient(circle at 50% 45%, #3a2716 0%, #241810 70%);
+    border-radius: 18px; padding: 16px 0 8px; margin-bottom: 6px;
+  }
+  .recipe-title { font-size: 1.35rem; font-weight: 800; text-align: center; margin: 6px 0 2px; }
+  .recipe-sub { text-align: center; color: var(--amber); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 14px; }
+  .recipe-row { display: flex; justify-content: space-between; gap: 16px; padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+  .recipe-row:last-of-type { border-bottom: none; }
+  .recipe-row .k { color: var(--text-dim); font-weight: 600; flex: 0 0 auto; }
+  .recipe-row .v { color: var(--text); text-align: right; }
+  .recipe-notes { margin-top: 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 14px; font-size: 0.92rem; color: var(--text); line-height: 1.5; }
+  .recipe-notes .nlabel { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.6px; color: var(--amber); font-weight: 700; margin-bottom: 6px; }
+  .recipe-readonly { text-align: center; font-size: 0.74rem; color: var(--text-dim); margin-top: 16px; font-style: italic; }
 </style>
 </head>
 <body>
@@ -281,79 +247,59 @@
 "use strict";
 
 /* =====================================================================
-   STORAGE LAYER
+   STORAGE LAYER  —  Firebase Firestore (Phase 2, multi-user)
    ---------------------------------------------------------------------
-   All persistence lives here and ONLY here. UI logic never touches
-   localStorage directly — it calls loadData() / saveData().
+   All persistence lives here and ONLY here. UI logic never touches the
+   backend directly — it calls loadData() / saveData() synchronously.
 
-   >>> PHASE 2 — FIREBASE MIGRATION POINT <<<
-   To swap localStorage for Firebase Firestore later:
-     - Replace the bodies of loadData() and saveData() below with
-       Firestore reads/writes (these can become async; if so, await
-       loadData() at call sites and make the render flow async).
-     - The data shape ({ bags: [...] }) and all helper accessors
-       (getBags, getBag, upsertBag, deleteBag, addLog, updateLog,
-       deleteLog) stay identical, so NO UI code needs to change.
-     - Suggested mapping: top-level collection "bags", each bag doc
-       holding a "logs" subcollection (or an embedded logs array to
-       mirror this exact structure with zero refactoring).
+   How it works:
+     - An in-memory _cache mirrors the signed-in user's Firestore doc.
+     - loadData() returns _cache instantly (synchronous, as before).
+     - saveData() updates _cache AND writes through to Firestore.
+     - The auth gate at the bottom of this script signs the user in,
+       points DOC at users/{uid}, and keeps _cache fresh via onSnapshot,
+       so every accessor and all UI code below stay unchanged.
    ===================================================================== */
 
-var STORAGE_KEY = "coffeeLog";
+// ---- Firebase init ----
+var firebaseConfig = {
+  apiKey: "AIzaSyAU0fJGnroqGjqfoG69PhWZWFQI87BhZ2A",
+  authDomain: "coffee-grind-log.firebaseapp.com",
+  projectId: "coffee-grind-log",
+  storageBucket: "coffee-grind-log.firebasestorage.app",
+  messagingSenderId: "677610452480",
+  appId: "1:677610452480:web:c03a32e784f5676a554ae5"
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+var DOC = null;            // set to users/{uid} after sign-in
 
-// --- Core read ---
+// Keep working offline; sync on reconnect (as localStorage did)
+db.enablePersistence({ synchronizeTabs: true }).catch(function () {});
+
+// ---- in-memory cache mirrors the signed-in user's document ----
+var _cache = { bags: [] };
+
 function loadData() {
-  // PHASE 2: replace with Firestore fetch -> return { bags: [...] }
-  try {
-    var raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { bags: [] };
-    var parsed = JSON.parse(raw);
-    if (!parsed || !Array.isArray(parsed.bags)) return { bags: [] };
-    return parsed;
-  } catch (e) {
-    console.error("loadData failed", e);
-    return { bags: [] };
-  }
+  // Synchronous read from the cache (the auth gate keeps it fresh)
+  return _cache;
 }
 
-// --- Core write ---
 function saveData(data) {
-  // PHASE 2: replace with Firestore write of `data`
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch (e) {
-    console.error("saveData failed", e);
-    alert("Could not save data. Storage may be full or unavailable.");
-  }
+  _cache = (data && Array.isArray(data.bags)) ? data : { bags: [] };
+  if (DOC) DOC.set(_cache).catch(function (e) { console.error("Firestore save failed", e); });
 }
 
-// --- ID helper ---
-function genId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-}
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 
-// --- Bag accessors (all go through loadData/saveData) ---
-function getBags() {
-  return loadData().bags;
-}
-
-function getBag(bagId) {
-  return getBags().filter(function (b) { return b.id === bagId; })[0] || null;
-}
+function getBags() { return loadData().bags; }
+function getBag(bagId) { return getBags().filter(function (b) { return b.id === bagId; })[0] || null; }
 
 function upsertBag(bag) {
-  var data = loadData();
-  var idx = -1;
-  for (var i = 0; i < data.bags.length; i++) {
-    if (data.bags[i].id === bag.id) { idx = i; break; }
-  }
-  if (idx === -1) {
-    bag.logs = bag.logs || [];
-    data.bags.push(bag);
-  } else {
-    bag.logs = data.bags[idx].logs || [];
-    data.bags[idx] = bag;
-  }
+  var data = loadData(), idx = -1;
+  for (var i = 0; i < data.bags.length; i++) { if (data.bags[i].id === bag.id) { idx = i; break; } }
+  if (idx === -1) { bag.logs = bag.logs || []; data.bags.push(bag); }
+  else { bag.logs = data.bags[idx].logs || []; data.bags[idx] = bag; }
   saveData(data);
   return bag;
 }
@@ -364,14 +310,11 @@ function deleteBag(bagId) {
   saveData(data);
 }
 
-// --- Log accessors ---
 function addLog(bagId, log) {
   var data = loadData();
   var bag = data.bags.filter(function (b) { return b.id === bagId; })[0];
   if (!bag) return;
-  bag.logs = bag.logs || [];
-  bag.logs.push(log);
-  saveData(data);
+  bag.logs = bag.logs || []; bag.logs.push(log); saveData(data);
 }
 
 function updateLog(bagId, log) {
@@ -391,24 +334,277 @@ function deleteLog(bagId, logId) {
 }
 
 /* =====================================================================
-   END STORAGE LAYER  —  everything below is UI logic only
+   END STORAGE LAYER  —  everything below is UI / reference logic only
    ===================================================================== */
 
-// --- Domain constants ---
 var BREW_METHODS = ["Espresso", "Moka Pot", "French Press", "AeroPress", "Pour Over", "Cold Brew"];
-var PREP_STYLES = ["Espresso", "Flat White", "Americano", "White Americano", "Latte", "Iced Latte", "Cappuccino", "Other"];
 var ROAST_LEVELS = ["Light", "Medium", "Dark"];
 
-// --- Scaled time (espresso) ---
-// Seconds to reach a 36g yield at the same flow rate.
-function calcScaledTime(time, yield_) {
-  var t = parseFloat(time), y = parseFloat(yield_);
-  if (!t || !y) return null;
-  return (t / y) * 36;
-}
-function scaledInRange(s) { return s !== null && s >= 25 && s <= 30; }
+/* ---------------------------------------------------------------------
+   COMBINATIONS MATRIX — Brew Method > Black/White > Preparation Styles
+   --------------------------------------------------------------------- */
+var COMBOS = {
+  "Espresso": {
+    "Black": ["Espresso", "Americano", "Long Black", "Iced Americano", "Freddo Espresso"],
+    "White": ["Flat White", "Latte", "Cappuccino", "White Americano", "Macchiato", "Cortado", "Piccolo", "Iced Latte", "Iced Flat White", "Iced Cappuccino", "Freddo Cappuccino"]
+  },
+  "Moka Pot": {
+    "Black": ["Espresso-style", "Americano-style", "Long Black-style"],
+    "White": ["Flat White-style", "Latte-style", "Iced Latte-style"]
+  },
+  "French Press": {
+    "Black": ["Black", "Long Black-style", "Iced"],
+    "White": ["White", "Latte-style", "Iced White"]
+  },
+  "AeroPress": {
+    "Black": ["Espresso-style", "Americano-style", "Long Black-style", "Cold Brew-style"],
+    "White": ["Flat White-style", "Latte-style", "Iced Latte-style"]
+  },
+  "Pour Over": {
+    "Black": ["Black", "Long Black-style", "Iced"],
+    "White": ["White", "Latte-style", "Iced White"]
+  },
+  "Cold Brew": {
+    "Black": ["Black", "Iced Americano-style", "Nitro-style"],
+    "White": ["With Milk", "Iced Latte-style"]
+  }
+};
 
-// --- Small helpers ---
+/* ---------------------------------------------------------------------
+   RECIPE DATABASE — keyed "Method|Prep". Reference only; never auto-fills.
+   Fields: visual, dose, grind, yield, temp, time, milk, ice, sugar, notes
+   --------------------------------------------------------------------- */
+var RECIPES = {
+  // ---------- ESPRESSO / BLACK ----------
+  "Espresso|Espresso": { visual: "espresso", dose: "18g", grind: "Fine", yield: "36g", temp: "90–96°C", time: "25–30s",
+    notes: "A balanced double shot at roughly a 1:2 ratio. This is the foundation every other espresso drink is built on." },
+  "Espresso|Americano": { visual: "black-tall", dose: "18g", grind: "Fine", yield: "36g", temp: "90–96°C", time: "25–30s",
+    notes: "Pull a double shot, then add 90–150ml of hot water (~90°C). Adjust strength by the amount of water." },
+  "Espresso|Long Black": { visual: "black-tall", dose: "18g", grind: "Fine", yield: "36g", temp: "90–96°C", time: "25–30s",
+    notes: "Add 80–120ml hot water to the cup FIRST, then pull the shot on top to preserve the crema. More aromatic and intense than an Americano." },
+  "Espresso|Iced Americano": { visual: "iced-black", dose: "18g", grind: "Fine", yield: "36g", temp: "90–96°C", time: "25–30s", ice: "Full glass",
+    notes: "Pull the shot over ice and 120ml cold water. Crisp and refreshing; drink promptly as the crema thins on ice." },
+  "Espresso|Freddo Espresso": { visual: "freddo-espresso", dose: "18g", grind: "Fine", yield: "36g", time: "25–30s",
+    ice: "Shake vigorously with ice for 15–20s", sugar: "1–2 tsp before shaking (optional, traditional)",
+    notes: "Double shot shaken hard with ice until frothy, served over fresh ice — no milk. The shaking creates a thick cold foam on top. A Greek café staple: intensely coffee-forward and refreshing. Pull the shot slightly stronger if you can." },
+
+  // ---------- ESPRESSO / WHITE ----------
+  "Espresso|Flat White": { visual: "flat-white", dose: "18g", grind: "Fine", yield: "36g", temp: "90–96°C", time: "25–30s",
+    milk: "110–130ml steamed microfoam", notes: "Higher coffee-to-milk ratio than a latte with a thin (~0.5cm) glossy microfoam. Served in a 150–180ml cup." },
+  "Espresso|Latte": { visual: "latte", dose: "18g", grind: "Fine", yield: "36g", temp: "90–96°C", time: "25–30s",
+    milk: "200–250ml steamed, ~1cm foam", notes: "Milky and mild. Served in a tall glass or large cup." },
+  "Espresso|Cappuccino": { visual: "cappuccino", dose: "18g", grind: "Fine", yield: "36g", temp: "90–96°C", time: "25–30s",
+    milk: "~120ml steamed, thick foam", notes: "Classic equal thirds: espresso, steamed milk, and a thick foam cap. ~150–180ml cup. Dust with cocoa if you like." },
+  "Espresso|White Americano": { visual: "latte", dose: "18g", grind: "Fine", yield: "36g", temp: "90–96°C", time: "25–30s",
+    milk: "30–50ml (a splash)", notes: "An Americano (shot + ~90ml water) finished with a dash of milk. Less milk than a latte and no foam." },
+  "Espresso|Macchiato": { visual: "macchiato", dose: "18g", grind: "Fine", yield: "36g", temp: "90–96°C", time: "25–30s",
+    milk: "10–15ml (a dollop of foam)", notes: "Espresso 'stained' with just a spoon of microfoam. Intense and short." },
+  "Espresso|Cortado": { visual: "cortado", dose: "18g", grind: "Fine", yield: "36g", temp: "90–96°C", time: "25–30s",
+    milk: "~60ml steamed, minimal foam", notes: "Equal parts espresso and warm milk (~1:1) in a small 90–130ml glass. Silky, cuts acidity." },
+  "Espresso|Piccolo": { visual: "piccolo", dose: "14–16g", grind: "Fine (slightly finer than espresso to compensate for the shorter pull)",
+    yield: "15–20ml (ristretto — short pull, stop early)", time: "18–22s", milk: "60–70ml steamed microfoam",
+    notes: "A single ristretto pulled short into a 90ml glass, topped with steamed microfoam. The ristretto is sweeter and more concentrated than a full double shot, and the small milk volume lets the coffee character dominate. Common in Australian specialty cafés." },
+  "Espresso|Iced Latte": { visual: "iced-latte", dose: "18g", grind: "Fine", yield: "36g", temp: "90–96°C", time: "25–30s",
+    milk: "180–220ml cold", ice: "Full glass", notes: "Pull the shot over ice and cold milk. No foam needed." },
+  "Espresso|Iced Flat White": { visual: "iced-white", dose: "18g", grind: "Fine", yield: "36g", temp: "90–96°C", time: "25–30s",
+    milk: "120–150ml cold", ice: "Full glass", notes: "Stronger than an iced latte with less milk, so the coffee reads through the ice." },
+  "Espresso|Iced Cappuccino": { visual: "iced-cappuccino", dose: "18g", grind: "Fine", yield: "36g", temp: "90–96°C", time: "25–30s",
+    milk: "100ml cold + a cold foam cap", ice: "Full glass", notes: "Iced espresso and milk finished with a layer of cold milk foam." },
+  "Espresso|Freddo Cappuccino": { visual: "freddo-cappuccino", dose: "18g", grind: "Fine", yield: "36g", time: "25–30s",
+    ice: "Shake the shot with ice for 15–20s", milk: "80–100ml cold milk, frothed thick & cold (handheld frother)",
+    sugar: "1–2 tsp in the shaker (optional, traditional)",
+    notes: "Double shot shaken with ice, topped with cold frothed milk foam. The defining feature is that foam — it should be thick and voluminous, NOT steamed. Froth cold milk aggressively with a handheld frother and spoon it over the shaken espresso base. Far more indulgent than a standard iced cappuccino." },
+
+  // ---------- MOKA POT / BLACK ----------
+  "Moka Pot|Espresso-style": { visual: "espresso", dose: "Fill the basket level (~15–18g)", grind: "Medium-fine (like table salt)",
+    yield: "~60ml (3-cup pot)", temp: "Medium heat, ~4–5 min", notes: "Not true espresso (lower pressure) but rich and concentrated. Take it off the heat the moment it gurgles and cool the base under a tap to stop extraction and avoid bitterness." },
+  "Moka Pot|Americano-style": { visual: "black-tall", dose: "~15–18g", grind: "Medium-fine", yield: "~60ml brew + 100ml hot water", temp: "Medium heat, ~4–5 min",
+    notes: "Brew a moka base and dilute with hot water to taste." },
+  "Moka Pot|Long Black-style": { visual: "black-tall", dose: "~15–18g", grind: "Medium-fine", yield: "~60ml brew over 80ml water", temp: "Medium heat, ~4–5 min",
+    notes: "Pour the moka brew over the hot water to keep the aromatic top layer." },
+
+  // ---------- MOKA POT / WHITE ----------
+  "Moka Pot|Flat White-style": { visual: "flat-white", dose: "~15–18g", grind: "Medium-fine", yield: "~40–50ml strong base", temp: "Medium heat, ~4–5 min",
+    milk: "110–130ml frothed microfoam", notes: "Use a strong moka brew as the base and froth milk by hand or with a wand." },
+  "Moka Pot|Latte-style": { visual: "latte", dose: "~15–18g", grind: "Medium-fine", yield: "~50ml base", temp: "Medium heat, ~4–5 min",
+    milk: "~200ml steamed", notes: "The robust moka base stands up well to plenty of milk." },
+  "Moka Pot|Iced Latte-style": { visual: "iced-latte", dose: "~15–18g", grind: "Medium-fine", yield: "~50ml base, cooled", temp: "Medium heat, ~4–5 min",
+    milk: "180ml cold", ice: "Full glass", notes: "Brew, cool briefly, then pour over iced cold milk." },
+
+  // ---------- FRENCH PRESS / BLACK ----------
+  "French Press|Black": { visual: "mug", dose: "30g", grind: "Coarse", yield: "~450ml", temp: "93–96°C", time: "4 min steep",
+    notes: "Ratio ~1:15. Stir the crust at 1 min and skim, then plunge gently at 4 min. Full-bodied with a heavier mouthfeel." },
+  "French Press|Long Black-style": { visual: "black-tall", dose: "32g", grind: "Coarse", yield: "~450ml", temp: "93–96°C", time: "4 min steep",
+    notes: "Brew a touch stronger (~1:14) for a concentrated, long-black character." },
+  "French Press|Iced": { visual: "iced-black", dose: "30g", grind: "Coarse", yield: "Brew double-strength", temp: "93–96°C", time: "4 min steep", ice: "Plunge over a full glass of ice",
+    notes: "Brew strong and pour straight over ice so it doesn't end up watery." },
+
+  // ---------- FRENCH PRESS / WHITE ----------
+  "French Press|White": { visual: "white-mug", dose: "30g", grind: "Coarse", yield: "~450ml", temp: "93–96°C", time: "4 min steep",
+    milk: "40–60ml warm", notes: "A splash of milk softens the press's heavier body. Tip: you can froth milk in a clean press by pumping the plunger." },
+  "French Press|Latte-style": { visual: "latte", dose: "32g", grind: "Coarse", yield: "~120ml strong brew", temp: "93–96°C", time: "4 min steep",
+    milk: "~150ml frothed", notes: "Use a stronger brew as the base and froth the milk separately (or by pumping the plunger)." },
+  "French Press|Iced White": { visual: "iced-white", dose: "32g", grind: "Coarse", yield: "Strong brew over ice", temp: "93–96°C", time: "4 min steep",
+    milk: "120ml cold", ice: "Full glass", notes: "Brew strong, pour over ice, then add cold milk." },
+
+  // ---------- AEROPRESS / BLACK ----------
+  "AeroPress|Espresso-style": { visual: "espresso", dose: "17g", grind: "Fine–medium", yield: "~60ml", temp: "85–90°C", time: "60–90s then press",
+    notes: "Use the inverted method and a short, concentrated brew for an espresso-like shot (no true crema)." },
+  "AeroPress|Americano-style": { visual: "black-tall", dose: "17g", grind: "Fine–medium", yield: "~60ml concentrate + 100ml hot water", temp: "85–90°C", time: "60–90s then press",
+    notes: "Brew a concentrate, then top up with hot water." },
+  "AeroPress|Long Black-style": { visual: "black-tall", dose: "17g", grind: "Fine–medium", yield: "~60ml concentrate over 80ml water", temp: "85–90°C", time: "60–90s then press",
+    notes: "Press the concentrate on top of hot water for an aromatic long-black character." },
+  "AeroPress|Cold Brew-style": { visual: "cold-brew", dose: "17g", grind: "Medium", yield: "~200ml", temp: "Cold / room-temp water", time: "2–3 min steep (longer = smoother)",
+    notes: "Use cold or room-temp water and a longer steep for a smooth, low-acid cup pressed in minutes rather than hours." },
+
+  // ---------- AEROPRESS / WHITE ----------
+  "AeroPress|Flat White-style": { visual: "flat-white", dose: "17g", grind: "Fine–medium", yield: "~60ml concentrate", temp: "85–90°C", time: "60–90s then press",
+    milk: "110ml microfoam", notes: "Brew a concentrate, then add frothed microfoam." },
+  "AeroPress|Latte-style": { visual: "latte", dose: "17g", grind: "Fine–medium", yield: "~60ml concentrate", temp: "85–90°C", time: "60–90s then press",
+    milk: "~180ml frothed", notes: "A concentrated brew under plenty of steamed milk." },
+  "AeroPress|Iced Latte-style": { visual: "iced-latte", dose: "17g", grind: "Fine–medium", yield: "~60ml concentrate", temp: "85–90°C", time: "60–90s then press",
+    milk: "150ml cold", ice: "Full glass", notes: "Press a concentrate over ice and cold milk." },
+
+  // ---------- POUR OVER / BLACK ----------
+  "Pour Over|Black": { visual: "mug", dose: "18g", grind: "Medium", yield: "~290ml", temp: "92–96°C", time: "2.5–3.5 min total",
+    notes: "Ratio ~1:16. Bloom with ~30g water for 30–45s, then pour in slow concentric circles in stages. Clean and bright." },
+  "Pour Over|Long Black-style": { visual: "black-tall", dose: "20g", grind: "Medium", yield: "~280ml", temp: "92–96°C", time: "2.5–3.5 min total",
+    notes: "Brew slightly stronger (~1:14) and serve short for a long-black character." },
+  "Pour Over|Iced": { visual: "iced-black", dose: "20g", grind: "Medium", yield: "Brew onto ice", temp: "92–96°C", time: "2.5–3.5 min total", ice: "Use ~40% of the total water as ice in the carafe",
+    notes: "The 'Japanese iced' method — brewing hot straight onto ice flash-chills the coffee and locks in aroma and brightness." },
+
+  // ---------- POUR OVER / WHITE ----------
+  "Pour Over|White": { visual: "white-mug", dose: "18g", grind: "Medium", yield: "~290ml", temp: "92–96°C", time: "2.5–3.5 min total",
+    milk: "40–60ml", notes: "A lighter, filter-style coffee with a splash of milk." },
+  "Pour Over|Latte-style": { visual: "latte", dose: "22g", grind: "Medium", yield: "~150ml strong brew", temp: "92–96°C", time: "2.5–3.5 min total",
+    milk: "~150ml frothed", notes: "Brew a stronger, more concentrated filter coffee as the milk base." },
+  "Pour Over|Iced White": { visual: "iced-white", dose: "20g", grind: "Medium", yield: "Japanese iced onto ice", temp: "92–96°C", time: "2.5–3.5 min total",
+    milk: "120ml cold", ice: "~40% of water as ice", notes: "Flash-chill onto ice, then add cold milk." },
+
+  // ---------- COLD BREW / BLACK ----------
+  "Cold Brew|Black": { visual: "cold-brew", dose: "100g", grind: "Coarse", yield: "~800ml concentrate", temp: "Cold / room-temp", time: "12–18 h steep (fridge)",
+    notes: "Ratio ~1:8 for a concentrate. Filter, then dilute 1:1 with water or ice to serve. Smooth, low-acid and naturally sweet." },
+  "Cold Brew|Iced Americano-style": { visual: "iced-black", dose: "Concentrate", grind: "Coarse", yield: "60ml concentrate + 120ml cold water", time: "(from a 12–18 h batch)", ice: "Full glass",
+    notes: "Lighter and crisper, like an iced Americano." },
+  "Cold Brew|Nitro-style": { visual: "nitro", dose: "Concentrate", grind: "Coarse", yield: "Charge with nitrogen", time: "(from a 12–18 h batch)",
+    notes: "Infuse cold brew with nitrogen (nitro tap or whipper) for a cascading, creamy, stout-like head. Best served unsweetened and without ice." },
+
+  // ---------- COLD BREW / WHITE ----------
+  "Cold Brew|With Milk": { visual: "iced-white", dose: "Concentrate", grind: "Coarse", yield: "60ml concentrate + 120ml cold milk", time: "(from a 12–18 h batch)", milk: "120ml cold", ice: "Full glass",
+    notes: "Milk rounds out the chocolatey notes of cold brew." },
+  "Cold Brew|Iced Latte-style": { visual: "iced-latte", dose: "Concentrate", grind: "Coarse", yield: "50ml concentrate + 150ml cold milk", time: "(from a 12–18 h batch)", milk: "150ml cold", ice: "Full glass",
+    notes: "A milkier serve — closer to an iced latte built on cold-brew concentrate." }
+};
+
+function recipeKey(method, prep) { return method + "|" + prep; }
+function getRecipe(method, prep) { return RECIPES[recipeKey(method, prep)] || null; }
+
+/* =====================================================================
+   SVG DRINK ILLUSTRATIONS — self-contained vector art per drink type
+   ===================================================================== */
+var C_COFFEE = "#3a2414", C_COFFEE2 = "#4a2f1c", C_CREMA = "#b9763c",
+    C_MILK = "#efe1cc", C_MILK2 = "#e7d6bd", C_FOAM = "#f7efe0",
+    ST = "#9a7651";
+var _svgN = 0;
+
+var GEO = {
+  "glass-tall":  { tlx: 40, trx: 80, blx: 46, brx: 74, ty: 22, by: 134, kind: "glass" },
+  "glass-short": { tlx: 38, trx: 82, blx: 45, brx: 75, ty: 58, by: 134, kind: "glass" },
+  "cup-sm":      { tlx: 47, trx: 73, blx: 52, brx: 68, ty: 78, by: 116, kind: "cup", saucerR: 24, handle: "sm" },
+  "cup":         { tlx: 40, trx: 80, blx: 48, brx: 72, ty: 62, by: 122, kind: "cup", saucerR: 31, handle: "md" },
+  "mug":         { tlx: 43, trx: 77, blx: 45, brx: 75, ty: 48, by: 130, kind: "mug" }
+};
+
+// visual -> { vessel, fill (0..1 of inner height), layers[bottom..top], opts }
+var DRINKS = {
+  "espresso":         { vessel: "cup-sm", fill: 0.82, layers: [{ c: C_COFFEE, f: 0.78 }, { c: C_CREMA, f: 0.22 }], opts: { steam: 1 } },
+  "black-tall":       { vessel: "glass-tall", fill: 0.9, layers: [{ c: C_COFFEE, f: 0.93 }, { c: C_CREMA, f: 0.07 }], opts: { steam: 1 } },
+  "iced-black":       { vessel: "glass-tall", fill: 0.92, layers: [{ c: C_COFFEE, f: 1 }], opts: { ice: 1 } },
+  "flat-white":       { vessel: "cup", fill: 0.86, layers: [{ c: C_COFFEE, f: 0.42 }, { c: C_MILK, f: 0.46 }, { c: C_FOAM, f: 0.12 }], opts: { steam: 1 } },
+  "latte":            { vessel: "glass-tall", fill: 0.9, layers: [{ c: C_COFFEE, f: 0.30 }, { c: C_MILK, f: 0.58 }, { c: C_FOAM, f: 0.12 }], opts: { steam: 1 } },
+  "cappuccino":       { vessel: "cup", fill: 0.82, layers: [{ c: C_COFFEE, f: 0.34 }, { c: C_MILK, f: 0.34 }, { c: C_FOAM, f: 0.32 }], opts: { steam: 1, dome: 1 } },
+  "macchiato":        { vessel: "cup-sm", fill: 0.82, layers: [{ c: C_COFFEE, f: 0.80 }, { c: C_CREMA, f: 0.20 }], opts: { dollop: 1 } },
+  "cortado":          { vessel: "glass-short", fill: 0.78, layers: [{ c: C_COFFEE, f: 0.50 }, { c: C_MILK, f: 0.44 }, { c: C_FOAM, f: 0.06 }], opts: {} },
+  "piccolo":          { vessel: "glass-short", fill: 0.66, layers: [{ c: C_COFFEE, f: 0.42 }, { c: C_MILK, f: 0.48 }, { c: C_FOAM, f: 0.10 }], opts: {} },
+  "iced-latte":       { vessel: "glass-tall", fill: 0.92, layers: [{ c: C_COFFEE, f: 0.42 }, { c: C_MILK, f: 0.58 }], opts: { ice: 1 } },
+  "iced-white":       { vessel: "glass-tall", fill: 0.92, layers: [{ c: C_COFFEE, f: 0.28 }, { c: C_MILK, f: 0.72 }], opts: { ice: 1 } },
+  "iced-cappuccino":  { vessel: "glass-tall", fill: 0.92, layers: [{ c: C_COFFEE, f: 0.42 }, { c: C_MILK, f: 0.38 }, { c: C_FOAM, f: 0.20 }], opts: { ice: 1 } },
+  "freddo-espresso":  { vessel: "glass-short", fill: 0.9, layers: [{ c: C_COFFEE, f: 0.9 }, { c: C_COFFEE2, f: 0.10 }], opts: { ice: 1, froth: 1 } },
+  "freddo-cappuccino":{ vessel: "glass-tall", fill: 0.92, layers: [{ c: C_COFFEE, f: 0.60 }, { c: C_FOAM, f: 0.40 }], opts: { ice: 1 } },
+  "nitro":            { vessel: "glass-tall", fill: 0.92, layers: [{ c: C_COFFEE, f: 0.84 }, { c: C_MILK2, f: 0.16 }], opts: {} },
+  "cold-brew":        { vessel: "glass-tall", fill: 0.88, layers: [{ c: C_COFFEE, f: 1 }], opts: {} },
+  "mug":              { vessel: "mug", fill: 0.9, layers: [{ c: C_COFFEE, f: 0.93 }, { c: C_CREMA, f: 0.07 }], opts: { steam: 1 } },
+  "white-mug":        { vessel: "mug", fill: 0.9, layers: [{ c: C_COFFEE, f: 0.52 }, { c: C_MILK, f: 0.48 }], opts: { steam: 1 } }
+};
+
+function _trap(tlx, trx, brx, blx, ty, by) {
+  return "M" + tlx + " " + ty + " L" + trx + " " + ty + " L" + brx + " " + by + " L" + blx + " " + by + " Z";
+}
+function _steam(ry) {
+  var b = ry - 2, h = 15;
+  function w(x, dir) { return '<path d="M' + x + ' ' + b + ' q' + (5 * dir) + ' -' + (h / 2) + ' 0 -' + h + '"/>'; }
+  return '<g fill="none" stroke="rgba(243,233,220,0.38)" stroke-width="2" stroke-linecap="round">' +
+    w(54, 1) + w(62, -1) + w(70, 1) + '</g>';
+}
+function _ice(top) {
+  function cube(x, y, r) {
+    return '<rect x="' + x + '" y="' + y + '" width="14" height="14" rx="3" fill="rgba(255,255,255,0.20)" stroke="rgba(255,255,255,0.42)" stroke-width="1" transform="rotate(' + r + ' ' + (x + 7) + ' ' + (y + 7) + ')"/>';
+  }
+  return cube(46, top + 2, 14) + cube(60, top + 6, -11) + cube(52, top + 16, 20) + cube(64, top + 19, 7);
+}
+function _extras(g) {
+  if (g.kind === "glass") return { front: "" };
+  var front = "";
+  if (g.kind === "cup") {
+    front += '<ellipse cx="60" cy="' + (g.by + 5) + '" rx="' + g.saucerR + '" ry="4" fill="none" stroke="' + ST + '" stroke-width="2.5"/>';
+    if (g.handle === "sm") front += '<path d="M' + (g.trx - 1) + ' ' + (g.ty + 6) + ' c 13 1 13 20 -2 20" fill="none" stroke="' + ST + '" stroke-width="2.5"/>';
+    else front += '<path d="M' + (g.trx - 1) + ' ' + (g.ty + 10) + ' c 18 2 18 30 -2 30" fill="none" stroke="' + ST + '" stroke-width="2.5"/>';
+  } else if (g.kind === "mug") {
+    front += '<rect x="' + (g.trx - 2) + '" y="' + (g.ty + 14) + '" width="15" height="32" rx="8" fill="none" stroke="' + ST + '" stroke-width="2.5"/>';
+  }
+  return { front: front };
+}
+
+function drinkSVG(visual, size) {
+  size = size || 130;
+  var cfg = DRINKS[visual] || DRINKS["espresso"];
+  var g = GEO[cfg.vessel];
+  var cid = "c" + (_svgN++);
+  var inner = _trap(g.tlx + 2.5, g.trx - 2.5, g.brx - 2.5, g.blx + 2.5, g.ty + 3, g.by - 2.5);
+  var outer = _trap(g.tlx, g.trx, g.brx, g.blx, g.ty, g.by);
+  var fy0 = g.ty + 3, fy1 = g.by - 2.5;
+  var H = (fy1 - fy0) * (cfg.fill || 0.9);
+  var topY = fy1 - H;
+
+  var sum = 0; cfg.layers.forEach(function (l) { sum += l.f; });
+  var y = fy1, liquids = "";
+  cfg.layers.forEach(function (l) {
+    var lh = H * (l.f / sum);
+    liquids += '<rect x="26" y="' + (y - lh) + '" width="68" height="' + (lh + 0.6) + '" fill="' + l.c + '"/>';
+    y -= lh;
+  });
+
+  var o = cfg.opts || {};
+  var froth = o.froth ? '<rect x="26" y="' + (topY - 2) + '" width="68" height="5" fill="' + C_COFFEE2 + '"/>' : "";
+  var ice = o.ice ? _ice(topY) : "";
+  var dome = o.dome ? '<ellipse cx="60" cy="' + topY + '" rx="' + ((g.trx - g.tlx) / 2 - 1) + '" ry="6" fill="' + C_FOAM + '"/>' : "";
+  var dollop = o.dollop ? '<ellipse cx="60" cy="' + (topY + 1) + '" rx="7" ry="4" fill="' + C_FOAM + '"/>' : "";
+  var steam = o.steam ? _steam(g.ty) : "";
+  var ex = _extras(g);
+
+  return '<svg viewBox="0 0 120 150" width="' + size + '" height="' + (size * 150 / 120) + '" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+    steam +
+    '<g clip-path="url(#' + cid + ')">' + liquids + ice + froth + '</g>' +
+    '<defs><clipPath id="' + cid + '"><path d="' + inner + '"/></clipPath></defs>' +
+    dome + dollop +
+    '<path d="' + outer + '" fill="none" stroke="' + ST + '" stroke-width="2.5" stroke-linejoin="round"/>' +
+    ex.front +
+    '</svg>';
+}
+
+/* =====================================================================
+   GENERIC HELPERS + RENDER
+   ===================================================================== */
 function esc(s) {
   return String(s == null ? "" : s)
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
@@ -419,29 +615,30 @@ function el(id) { return document.getElementById(id); }
 function beansHTML(rating) {
   rating = parseInt(rating, 10) || 0;
   var html = '<span class="beans">';
-  for (var i = 1; i <= 5; i++) {
-    html += '<span class="bean' + (i <= rating ? ' filled' : '') + '">&#9679;</span>';
-  }
-  return html + '</span>';
+  for (var i = 1; i <= 5; i++) html += '<span class="bean' + (i <= rating ? " filled" : "") + '">&#9679;</span>';
+  return html + "</span>";
 }
-
 function fmtDate(iso) {
   if (!iso) return "";
-  var d = new Date(iso);
-  if (isNaN(d)) return esc(iso);
+  var d = new Date(iso); if (isNaN(d)) return esc(iso);
   return d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 }
 function fmtDateTime(iso) {
   if (!iso) return "";
-  var d = new Date(iso);
-  if (isNaN(d)) return esc(iso);
+  var d = new Date(iso); if (isNaN(d)) return esc(iso);
   return d.toLocaleDateString(undefined, { day: "numeric", month: "short" }) + ", " +
          d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
 }
 
-// --- Router state ---
-var route = { screen: "home", bagId: null, logId: null };
+// Espresso scaled time: seconds to reach 36g yield at the same flow rate.
+function calcScaledTime(time, yield_) {
+  var t = parseFloat(time), y = parseFloat(yield_);
+  if (!t || !y) return null;
+  return (t / y) * 36;
+}
+function scaledInRange(s) { return s !== null && s >= 25 && s <= 30; }
 
+var route = { screen: "home", bagId: null, logId: null };
 function navigate(screen, params) {
   params = params || {};
   route.screen = screen;
@@ -451,22 +648,11 @@ function navigate(screen, params) {
   render();
 }
 
-// =====================================================================
-// RENDER
-// =====================================================================
 function render() {
-  var view = el("view");
-  var header = el("headerTitle");
-  var back = el("backBtn");
-  var action = el("headerAction");
-  var fab = el("fab");
-
-  back.style.display = "none";
-  action.style.display = "none";
-  fab.style.display = "none";
-  fab.innerHTML = "";
-  action.onclick = null;
-  back.onclick = null;
+  var view = el("view"), header = el("headerTitle"), back = el("backBtn"),
+      action = el("headerAction"), fab = el("fab");
+  back.style.display = "none"; action.style.display = "none"; fab.style.display = "none";
+  fab.innerHTML = ""; action.onclick = null; back.onclick = null;
 
   switch (route.screen) {
     case "home": renderHome(view, header, back, action, fab); break;
@@ -474,28 +660,28 @@ function render() {
     case "editBag": renderBagForm(view, header, back, action, fab); break;
     case "editLog": renderLogForm(view, header, back, action, fab); break;
     case "reference": renderReference(view, header, back, action, fab); break;
+    case "recipes": renderRecipesGallery(view, header, back, action, fab); break;
   }
 }
 
 // ---------- HOME / BAG LIST ----------
 function renderHome(view, header, back, action, fab) {
   header.textContent = "Grind Log";
+  action.style.display = "block"; action.textContent = "Recipes";
+  action.onclick = function () { navigate("recipes"); };
 
   var bags = getBags().slice();
-  // Active first, then by date opened (newest first)
   bags.sort(function (a, b) {
     if (!!a.finished !== !!b.finished) return a.finished ? 1 : -1;
     return (b.dateOpened || "").localeCompare(a.dateOpened || "");
   });
 
   if (bags.length === 0) {
-    view.innerHTML =
-      '<div class="empty"><div class="big">&#9749;</div>' +
+    view.innerHTML = '<div class="empty"><div class="big">&#9749;</div>' +
       '<div>No coffee bags yet.</div>' +
       '<div style="margin-top:6px;font-size:0.85rem;">Add your first bag to start logging brews.</div></div>';
   } else {
-    var html = "";
-    var activeShown = false, finishedShown = false;
+    var html = "", activeShown = false, finishedShown = false;
     for (var i = 0; i < bags.length; i++) {
       var b = bags[i];
       if (!b.finished && !activeShown) { html += '<div class="section-title">Active</div>'; activeShown = true; }
@@ -508,15 +694,15 @@ function renderHome(view, header, back, action, fab) {
   fab.style.display = "block";
   fab.innerHTML = '<button class="btn btn-primary" id="addBagBtn">+ Add Coffee Bag</button>';
   el("addBagBtn").onclick = function () { navigate("editBag", { bagId: null }); };
+
+  view.insertAdjacentHTML("beforeend",
+    '<button class="btn btn-secondary" id="signOutBtn" style="margin-top:28px;">Sign out</button>');
+  el("signOutBtn").onclick = function () { signOutUser(); };
 }
 
 function latestGrindByMethod(bag) {
-  // Returns { method: grindSize } using most recent log per method
-  var logs = (bag.logs || []).slice().sort(function (a, b) {
-    return (b.loggedAt || "").localeCompare(a.loggedAt || "");
-  });
-  var seen = {};
-  var out = [];
+  var logs = (bag.logs || []).slice().sort(function (a, b) { return (b.loggedAt || "").localeCompare(a.loggedAt || ""); });
+  var seen = {}, out = [];
   for (var i = 0; i < logs.length; i++) {
     var m = logs[i].method;
     if (!seen[m]) { seen[m] = true; out.push({ method: m, grind: logs[i].grind }); }
@@ -525,110 +711,68 @@ function latestGrindByMethod(bag) {
 }
 
 function bagCardHTML(b) {
-  var grinds = latestGrindByMethod(b);
-  var chips = "";
+  var grinds = latestGrindByMethod(b), chips;
   if (grinds.length) {
     chips = '<div class="grind-chips">';
-    for (var i = 0; i < grinds.length; i++) {
+    for (var i = 0; i < grinds.length; i++)
       chips += '<span class="chip">' + esc(grinds[i].method) + ': <strong>' + esc(grinds[i].grind) + '</strong></span>';
-    }
-    chips += '</div>';
-  } else {
-    chips = '<div class="grind-chips"><span class="chip">No brews logged yet</span></div>';
-  }
-  var statusBadge = b.finished
-    ? '<span class="badge badge-finished">Finished</span>'
-    : '<span class="badge badge-active">Active</span>';
-
+    chips += "</div>";
+  } else chips = '<div class="grind-chips"><span class="chip">No brews logged yet</span></div>';
+  var statusBadge = b.finished ? '<span class="badge badge-finished">Finished</span>' : '<span class="badge badge-active">Active</span>';
   return '<div class="card" onclick="navigate(\'bag\',{bagId:\'' + b.id + '\'})">' +
-    '<div class="row-between">' +
-      '<div style="min-width:0;"><div class="bag-name">' + esc(b.name) + '</div>' +
-      '<div class="bag-sub">' + esc(b.roaster || "") + '</div></div>' +
-      statusBadge +
-    '</div>' + chips +
-  '</div>';
+    '<div class="row-between"><div style="min-width:0;"><div class="bag-name">' + esc(b.name) + '</div>' +
+    '<div class="bag-sub">' + esc(b.roaster || "") + '</div></div>' + statusBadge + '</div>' + chips + '</div>';
 }
 
 // ---------- BAG DETAIL ----------
 function renderBagDetail(view, header, back, action, fab) {
   var bag = getBag(route.bagId);
   if (!bag) { navigate("home"); return; }
-
   header.textContent = bag.name;
-  back.style.display = "block";
-  back.onclick = function () { navigate("home"); };
-  action.style.display = "block";
-  action.textContent = "Edit";
+  back.style.display = "block"; back.onclick = function () { navigate("home"); };
+  action.style.display = "block"; action.textContent = "Edit";
   action.onclick = function () { navigate("editBag", { bagId: bag.id }); };
 
-  var html = "";
-
-  // Bag info card
-  var origin = bag.origin ? '<div><b>Origin</b> ' + esc(bag.origin) + '</div>' : '';
-  html += '<div class="card static">' +
-    '<div class="row-between"><div class="bag-name">' + esc(bag.name) + '</div>' +
-    (bag.finished ? '<span class="badge badge-finished">Finished</span>' : '<span class="badge badge-active">Active</span>') +
-    '</div>' +
+  var origin = bag.origin ? '<div><b>Origin</b> ' + esc(bag.origin) + "</div>" : "";
+  var html = '<div class="card static"><div class="row-between"><div class="bag-name">' + esc(bag.name) + '</div>' +
+    (bag.finished ? '<span class="badge badge-finished">Finished</span>' : '<span class="badge badge-active">Active</span>') + '</div>' +
     '<div class="bag-sub">' + esc(bag.roaster || "") + '</div>' +
-    '<div class="info-grid">' +
-      '<div><b>Roast</b> ' + esc(bag.roast || "—") + '</div>' +
-      '<div><b>Opened</b> ' + (bag.dateOpened ? fmtDate(bag.dateOpened) : "—") + '</div>' +
-      origin +
-    '</div></div>';
+    '<div class="info-grid"><div><b>Roast</b> ' + esc(bag.roast || "—") + "</div>" +
+    '<div><b>Opened</b> ' + (bag.dateOpened ? fmtDate(bag.dateOpened) : "—") + "</div>" + origin + "</div></div>";
 
-  // Grind reference link
   html += '<div class="link-row" onclick="navigate(\'reference\',{bagId:\'' + bag.id + '\'})">' +
-    '<div><div class="ref-method">&#9737; Grind Reference</div>' +
-    '<div class="bag-sub">Best-rated grind per method</div></div>' +
+    '<div><div class="ref-method">&#9737; Grind Reference</div><div class="bag-sub">Best-rated grind per method</div></div>' +
     '<div class="arrow">›</div></div>';
 
-  // Logs
-  var logs = (bag.logs || []).slice().sort(function (a, b) {
-    return (b.loggedAt || "").localeCompare(a.loggedAt || "");
-  });
-
-  html += '<div class="section-title">Brew Logs (' + logs.length + ')</div>';
-  if (logs.length === 0) {
-    html += '<div class="empty" style="padding:28px 16px;">No brews logged for this bag yet.</div>';
-  } else {
-    for (var i = 0; i < logs.length; i++) html += logCardHTML(bag.id, logs[i]);
-  }
+  var logs = (bag.logs || []).slice().sort(function (a, b) { return (b.loggedAt || "").localeCompare(a.loggedAt || ""); });
+  html += '<div class="section-title">Brew Logs (' + logs.length + ")</div>";
+  if (logs.length === 0) html += '<div class="empty" style="padding:28px 16px;">No brews logged for this bag yet.</div>';
+  else for (var i = 0; i < logs.length; i++) html += logCardHTML(bag.id, logs[i]);
 
   view.innerHTML = html;
-
   fab.style.display = "block";
   fab.innerHTML = '<button class="btn btn-primary" id="addLogBtn">+ Add Brew Log</button>';
   el("addLogBtn").onclick = function () { navigate("editLog", { bagId: bag.id, logId: null }); };
 }
 
 function logCardHTML(bagId, log) {
-  var meta = '<span><b>Grind</b> ' + esc(log.grind) + '</span>';
+  var meta = '<span><b>Grind</b> ' + esc(log.grind) + "</span>";
   var scaledBadge = "";
-
   if (log.method === "Espresso") {
-    if (log.dose) meta += '<span><b>Dose</b> ' + esc(log.dose) + 'g</span>';
-    if (log.yield) meta += '<span><b>Yield</b> ' + esc(log.yield) + 'g</span>';
-    if (log.time) meta += '<span><b>Time</b> ' + esc(log.time) + 's</span>';
+    if (log.dose) meta += '<span><b>Dose</b> ' + esc(log.dose) + "g</span>";
+    if (log.yield) meta += '<span><b>Yield</b> ' + esc(log.yield) + "g</span>";
+    if (log.time) meta += '<span><b>Time</b> ' + esc(log.time) + "s</span>";
     var s = calcScaledTime(log.time, log.yield);
-    if (s !== null) {
-      scaledBadge = '<span class="scaled-badge ' + (scaledInRange(s) ? 'scaled-good' : 'scaled-bad') + '">' +
-        'Scaled ' + s.toFixed(1) + 's</span>';
-    }
+    if (s !== null) scaledBadge = '<span class="scaled-badge ' + (scaledInRange(s) ? "scaled-good" : "scaled-bad") + '">Scaled ' + s.toFixed(1) + "s</span>";
   }
-
-  var notes = log.notes ? '<div class="log-notes">&ldquo;' + esc(log.notes) + '&rdquo;</div>' : '';
-
+  var prepLabel = esc(log.prep) + (log.color ? " · " + esc(log.color) : "");
+  var notes = log.notes ? '<div class="log-notes">&ldquo;' + esc(log.notes) + "&rdquo;</div>" : "";
   return '<div class="card" onclick="navigate(\'editLog\',{bagId:\'' + bagId + '\',logId:\'' + log.id + '\'})">' +
-    '<div class="log-head">' +
-      '<div><span class="log-method">' + esc(log.method) + '</span> ' +
-      '<span class="log-prep">· ' + esc(log.prep) + '</span></div>' +
-      beansHTML(log.rating) +
-    '</div>' +
-    '<div class="log-meta">' + meta + '</div>' +
-    (scaledBadge ? '<div style="margin-top:10px;">' + scaledBadge + '</div>' : '') +
-    notes +
-    '<div class="log-date">' + fmtDateTime(log.loggedAt) + '</div>' +
-  '</div>';
+    '<div class="log-head"><div><span class="log-method">' + esc(log.method) + '</span> <span class="log-prep">· ' + prepLabel + '</span></div>' +
+    beansHTML(log.rating) + "</div>" +
+    '<div class="log-meta">' + meta + "</div>" +
+    (scaledBadge ? '<div style="margin-top:10px;">' + scaledBadge + "</div>" : "") + notes +
+    '<div class="log-date">' + fmtDateTime(log.loggedAt) + "</div></div>";
 }
 
 // ---------- ADD / EDIT BAG ----------
@@ -636,36 +780,28 @@ function renderBagForm(view, header, back, action, fab) {
   var editing = !!route.bagId;
   var bag = editing ? getBag(route.bagId) : null;
   if (editing && !bag) { navigate("home"); return; }
-
   header.textContent = editing ? "Edit Bag" : "New Bag";
   back.style.display = "block";
   back.onclick = function () { editing ? navigate("bag", { bagId: bag.id }) : navigate("home"); };
 
   var today = new Date().toISOString().slice(0, 10);
   var b = bag || { name: "", roaster: "", origin: "", roast: "Medium", dateOpened: today, finished: false };
-
   var roastSeg = ROAST_LEVELS.map(function (r) {
-    return '<div class="seg-opt' + (b.roast === r ? ' sel' : '') + '" data-roast="' + r + '">' + r + '</div>';
+    return '<div class="seg-opt' + (b.roast === r ? " sel" : "") + '" data-roast="' + r + '">' + r + "</div>";
   }).join("");
 
   view.innerHTML =
-    '<div class="field"><label>Name</label>' +
-      '<input type="text" id="f_name" placeholder="e.g. Monmouth Espresso Blend" value="' + esc(b.name) + '"></div>' +
-    '<div class="field"><label>Roaster</label>' +
-      '<input type="text" id="f_roaster" placeholder="e.g. Monmouth" value="' + esc(b.roaster) + '"></div>' +
-    '<div class="field"><label>Origin / Blend (optional)</label>' +
-      '<input type="text" id="f_origin" placeholder="e.g. Brazil / Ethiopia blend" value="' + esc(b.origin) + '"></div>' +
-    '<div class="field"><label>Roast Level</label><div class="seg" id="roastSeg">' + roastSeg + '</div></div>' +
-    '<div class="field"><label>Date Opened</label>' +
-      '<input type="date" id="f_dateOpened" value="' + esc(b.dateOpened || today) + '"></div>' +
+    '<div class="field"><label>Name</label><input type="text" id="f_name" placeholder="e.g. Monmouth Espresso Blend" value="' + esc(b.name) + '"></div>' +
+    '<div class="field"><label>Roaster</label><input type="text" id="f_roaster" placeholder="e.g. Monmouth" value="' + esc(b.roaster) + '"></div>' +
+    '<div class="field"><label>Origin / Blend (optional)</label><input type="text" id="f_origin" placeholder="e.g. Brazil / Ethiopia blend" value="' + esc(b.origin) + '"></div>' +
+    '<div class="field"><label>Roast Level</label><div class="seg" id="roastSeg">' + roastSeg + "</div></div>" +
+    '<div class="field"><label>Date Opened</label><input type="date" id="f_dateOpened" value="' + esc(b.dateOpened || today) + '"></div>' +
     '<div class="field"><label>Status</label><div class="seg" id="statusSeg">' +
-      '<div class="seg-opt' + (!b.finished ? ' sel' : '') + '" data-status="active">Active</div>' +
-      '<div class="seg-opt' + (b.finished ? ' sel' : '') + '" data-status="finished">Finished</div>' +
-    '</div></div>' +
-    '<button class="btn btn-primary" id="saveBag">' + (editing ? "Save Changes" : "Add Bag") + '</button>' +
-    (editing ? '<button class="btn btn-danger" id="delBag">Delete Bag</button>' : '');
+      '<div class="seg-opt' + (!b.finished ? " sel" : "") + '" data-status="active">Active</div>' +
+      '<div class="seg-opt' + (b.finished ? " sel" : "") + '" data-status="finished">Finished</div></div></div>' +
+    '<button class="btn btn-primary" id="saveBag">' + (editing ? "Save Changes" : "Add Bag") + "</button>" +
+    (editing ? '<button class="btn btn-danger" id="delBag">Delete Bag</button>' : "");
 
-  // Segmented control wiring
   var form = { roast: b.roast, finished: !!b.finished };
   setupSeg("roastSeg", "roast", function (v) { form.roast = v; });
   setupSeg("statusSeg", "status", function (v) { form.finished = (v === "finished"); });
@@ -673,32 +809,18 @@ function renderBagForm(view, header, back, action, fab) {
   el("saveBag").onclick = function () {
     var name = el("f_name").value.trim();
     if (!name) { alert("Please enter a bag name."); return; }
-    var saved = {
-      id: editing ? bag.id : genId(),
-      name: name,
-      roaster: el("f_roaster").value.trim(),
-      origin: el("f_origin").value.trim(),
-      roast: form.roast,
-      dateOpened: el("f_dateOpened").value,
-      finished: form.finished
-    };
+    var saved = { id: editing ? bag.id : genId(), name: name, roaster: el("f_roaster").value.trim(),
+      origin: el("f_origin").value.trim(), roast: form.roast, dateOpened: el("f_dateOpened").value, finished: form.finished };
     upsertBag(saved);
     navigate("bag", { bagId: saved.id });
   };
-
-  if (editing) {
-    el("delBag").onclick = function () {
-      if (confirm("Delete this bag and all its brew logs?")) {
-        deleteBag(bag.id);
-        navigate("home");
-      }
-    };
-  }
+  if (editing) el("delBag").onclick = function () {
+    if (confirm("Delete this bag and all its brew logs?")) { deleteBag(bag.id); navigate("home"); }
+  };
 }
 
 function setupSeg(containerId, attr, cb) {
-  var c = el(containerId);
-  var opts = c.querySelectorAll(".seg-opt");
+  var opts = el(containerId).querySelectorAll(".seg-opt");
   for (var i = 0; i < opts.length; i++) {
     (function (opt) {
       opt.onclick = function () {
@@ -710,7 +832,7 @@ function setupSeg(containerId, attr, cb) {
   }
 }
 
-// ---------- ADD / EDIT LOG ----------
+// ---------- ADD / EDIT LOG (three-tier dropdown) ----------
 function renderLogForm(view, header, back, action, fab) {
   var bag = getBag(route.bagId);
   if (!bag) { navigate("home"); return; }
@@ -722,206 +844,291 @@ function renderLogForm(view, header, back, action, fab) {
   back.style.display = "block";
   back.onclick = function () { navigate("bag", { bagId: bag.id }); };
 
-  // default datetime-local value (local time, not UTC)
   function localDTValue(iso) {
     var d = iso ? new Date(iso) : new Date();
-    var off = d.getTimezoneOffset();
-    var local = new Date(d.getTime() - off * 60000);
+    var local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
     return local.toISOString().slice(0, 16);
   }
 
-  var l = log || { method: "Espresso", prep: "Espresso", grind: "", loggedAt: new Date().toISOString(),
-                   notes: "", rating: 0, dose: "", yield: "", time: "" };
+  var defMethod = "Espresso";
+  var l = log || { method: defMethod, color: "Black", prep: COMBOS[defMethod].Black[0], grind: "",
+    loggedAt: new Date().toISOString(), notes: "", rating: 0, dose: "", yield: "", time: "" };
+
+  // Infer color for legacy logs that lack it
+  var initColor = l.color;
+  if (!initColor || !COMBOS[l.method] || !COMBOS[l.method][initColor]) {
+    initColor = "Black";
+    if (COMBOS[l.method]) {
+      if ((COMBOS[l.method].White || []).indexOf(l.prep) !== -1) initColor = "White";
+    }
+  }
 
   var methodOpts = BREW_METHODS.map(function (m) {
-    return '<option value="' + m + '"' + (l.method === m ? ' selected' : '') + '>' + m + '</option>';
-  }).join("");
-  var prepOpts = PREP_STYLES.map(function (p) {
-    return '<option value="' + p + '"' + (l.prep === p ? ' selected' : '') + '>' + p + '</option>';
+    return '<option value="' + m + '"' + (l.method === m ? " selected" : "") + ">" + m + "</option>";
   }).join("");
 
   view.innerHTML =
-    '<div class="field"><label>Brew Method</label><select id="f_method">' + methodOpts + '</select></div>' +
-    '<div class="field"><label>Preparation Style</label><select id="f_prep">' + prepOpts + '</select></div>' +
+    '<div class="field"><label>Brew Method</label><select id="f_method">' + methodOpts + "</select></div>" +
+    '<div class="field"><label>Black or White</label><div class="seg" id="colorSeg">' +
+      '<div class="seg-opt" data-color="Black">Black</div>' +
+      '<div class="seg-opt" data-color="White">White</div></div></div>' +
+    '<div class="field"><div class="label-row"><label for="f_prep">Preparation Style</label>' +
+      '<button type="button" class="info-btn" id="recipeBtn" aria-label="View recipe card">i</button></div>' +
+      '<select id="f_prep"></select>' +
+      '<div class="hint">Tap the <b>i</b> for this drink’s recipe card.</div></div>' +
+
     '<div class="field"><label>Grind Size</label>' +
       '<input type="number" inputmode="decimal" step="any" id="f_grind" placeholder="e.g. 18" value="' + esc(l.grind) + '">' +
-      '<div class="hint">Use your grinder\'s own scale (numeric).</div></div>' +
+      '<div class="hint">Use your grinder’s own numeric scale.</div></div>' +
 
-    // Espresso-only block
     '<div id="espressoBlock" style="display:none;">' +
       '<div class="row2">' +
-        '<div class="field"><label>Dose (g)</label>' +
-          '<input type="number" inputmode="decimal" step="any" id="f_dose" placeholder="18" value="' + esc(l.dose) + '"></div>' +
-        '<div class="field"><label>Yield (g)</label>' +
-          '<input type="number" inputmode="decimal" step="any" id="f_yield" placeholder="36" value="' + esc(l.yield) + '"></div>' +
-      '</div>' +
-      '<div class="field"><label>Time (seconds)</label>' +
-        '<input type="number" inputmode="decimal" step="any" id="f_time" placeholder="28" value="' + esc(l.time) + '"></div>' +
-      '<div class="field"><div class="live-scaled" id="liveScaled">' +
-        '<span class="lbl">Scaled time (to 36g)</span><span class="num" id="liveScaledNum">—</span>' +
-        '<span class="lbl" id="liveScaledHint">Target 25–30s</span></div></div>' +
-    '</div>' +
+        '<div class="field"><label>Dose (g)</label><input type="number" inputmode="decimal" step="any" id="f_dose" placeholder="18" value="' + esc(l.dose) + '"></div>' +
+        '<div class="field"><label>Yield (g)</label><input type="number" inputmode="decimal" step="any" id="f_yield" placeholder="36" value="' + esc(l.yield) + '"></div></div>' +
+      '<div class="field"><label>Time (seconds)</label><input type="number" inputmode="decimal" step="any" id="f_time" placeholder="28" value="' + esc(l.time) + '"></div>' +
+      '<div class="field"><div class="live-scaled" id="liveScaled"><span class="lbl">Scaled time (to 36g)</span>' +
+        '<span class="num" id="liveScaledNum">—</span><span class="lbl" id="liveScaledHint">Target 25–30s</span></div></div></div>' +
 
-    '<div class="field"><label>Date / Time</label>' +
-      '<input type="datetime-local" id="f_loggedAt" value="' + localDTValue(l.loggedAt) + '"></div>' +
+    '<div class="field"><label>Date / Time</label><input type="datetime-local" id="f_loggedAt" value="' + localDTValue(l.loggedAt) + '"></div>' +
     '<div class="field"><label>Rating</label><div class="star-picker" id="starPicker"></div></div>' +
-    '<div class="field"><label>Notes (optional)</label>' +
-      '<textarea id="f_notes" placeholder="Taste, adjustments, observations...">' + esc(l.notes || "") + '</textarea></div>' +
+    '<div class="field"><label>Notes (optional)</label><textarea id="f_notes" placeholder="Taste, adjustments, observations...">' + esc(l.notes || "") + "</textarea></div>" +
 
-    '<button class="btn btn-primary" id="saveLog">' + (editing ? "Save Changes" : "Add Log") + '</button>' +
-    (editing ? '<button class="btn btn-danger" id="delLog">Delete Log</button>' : '');
+    '<button class="btn btn-primary" id="saveLog">' + (editing ? "Save Changes" : "Add Log") + "</button>" +
+    (editing ? '<button class="btn btn-danger" id="delLog">Delete Log</button>' : "");
 
-  // --- Star picker ---
+  var state = { method: l.method, color: initColor, prep: l.prep };
+
+  function refreshPrep() {
+    var list = (COMBOS[state.method] && COMBOS[state.method][state.color]) || [];
+    if (list.indexOf(state.prep) === -1) state.prep = list[0] || "";
+    var sel = el("f_prep");
+    sel.innerHTML = list.map(function (p) {
+      return '<option value="' + esc(p) + '"' + (p === state.prep ? " selected" : "") + ">" + esc(p) + "</option>";
+    }).join("");
+  }
+
+  // color segmented control
+  var colorOpts = el("colorSeg").querySelectorAll(".seg-opt");
+  function paintColor() {
+    for (var j = 0; j < colorOpts.length; j++)
+      colorOpts[j].classList.toggle("sel", colorOpts[j].getAttribute("data-color") === state.color);
+  }
+  for (var i = 0; i < colorOpts.length; i++) {
+    (function (opt) {
+      opt.onclick = function () { state.color = opt.getAttribute("data-color"); paintColor(); refreshPrep(); };
+    })(colorOpts[i]);
+  }
+  paintColor();
+  refreshPrep();
+
+  el("f_prep").onchange = function () { state.prep = el("f_prep").value; };
+
+  el("f_method").onchange = function () {
+    state.method = el("f_method").value;
+    if (!COMBOS[state.method][state.color]) state.color = "Black";
+    paintColor(); refreshPrep(); toggleEspresso();
+  };
+
+  el("recipeBtn").onclick = function () { openRecipe(state.method, state.color, state.prep); };
+
+  // Star picker
   var ratingState = { value: parseInt(l.rating, 10) || 0 };
   function drawStars() {
-    var sp = el("starPicker");
-    sp.innerHTML = "";
-    for (var i = 1; i <= 5; i++) {
+    var sp = el("starPicker"); sp.innerHTML = "";
+    for (var k = 1; k <= 5; k++) {
       (function (n) {
         var span = document.createElement("span");
         span.className = "bean" + (n <= ratingState.value ? " filled" : "");
         span.innerHTML = "&#9679;";
-        span.onclick = function () {
-          ratingState.value = (ratingState.value === n) ? 0 : n; // tap same star again to clear
-          drawStars();
-        };
+        span.onclick = function () { ratingState.value = (ratingState.value === n) ? 0 : n; drawStars(); };
         sp.appendChild(span);
-      })(i);
+      })(k);
     }
   }
   drawStars();
 
-  // --- Espresso block toggle + live scaled time ---
+  // Espresso live scaled time
   function updateLiveScaled() {
     var s = calcScaledTime(el("f_time").value, el("f_yield").value);
-    var box = el("liveScaled");
-    var num = el("liveScaledNum");
-    var hint = el("liveScaledHint");
-    if (s === null) {
-      num.textContent = "—";
-      box.style.background = "var(--surface-2)";
-      box.style.color = "var(--text-dim)";
-      hint.textContent = "Enter yield & time";
-    } else {
+    var box = el("liveScaled"), num = el("liveScaledNum"), hint = el("liveScaledHint");
+    if (s === null) { num.textContent = "—"; box.style.background = "var(--surface-2)"; box.style.color = "var(--text-dim)"; hint.textContent = "Enter yield & time"; }
+    else {
       num.textContent = s.toFixed(1) + "s";
-      if (scaledInRange(s)) {
-        box.style.background = "var(--green-bg)";
-        box.style.color = "var(--green)";
-        hint.textContent = "In range (25–30s) ✓";
-      } else {
-        box.style.background = "var(--red-bg)";
-        box.style.color = "var(--red)";
-        hint.textContent = (s < 25 ? "Too fast — grind finer" : "Too slow — grind coarser");
-      }
+      if (scaledInRange(s)) { box.style.background = "var(--green-bg)"; box.style.color = "var(--green)"; hint.textContent = "In range (25–30s) ✓"; }
+      else { box.style.background = "var(--red-bg)"; box.style.color = "var(--red)"; hint.textContent = (s < 25 ? "Too fast — grind finer" : "Too slow — grind coarser"); }
     }
   }
-
   function toggleEspresso() {
     var isEsp = el("f_method").value === "Espresso";
     el("espressoBlock").style.display = isEsp ? "block" : "none";
     if (isEsp) updateLiveScaled();
   }
-
-  el("f_method").onchange = toggleEspresso;
   el("f_yield").oninput = updateLiveScaled;
   el("f_time").oninput = updateLiveScaled;
   toggleEspresso();
 
-  // --- Save ---
   el("saveLog").onclick = function () {
     var grind = el("f_grind").value.trim();
     if (grind === "") { alert("Please enter a grind size."); return; }
     var method = el("f_method").value;
     var dtVal = el("f_loggedAt").value;
-    var saved = {
-      id: editing ? log.id : genId(),
-      method: method,
-      prep: el("f_prep").value,
-      grind: grind,
-      loggedAt: dtVal ? new Date(dtVal).toISOString() : new Date().toISOString(),
-      notes: el("f_notes").value.trim(),
-      rating: ratingState.value,
+    var saved = { id: editing ? log.id : genId(), method: method, color: state.color, prep: state.prep,
+      grind: grind, loggedAt: dtVal ? new Date(dtVal).toISOString() : new Date().toISOString(),
+      notes: el("f_notes").value.trim(), rating: ratingState.value,
       dose: method === "Espresso" ? el("f_dose").value.trim() : "",
       yield: method === "Espresso" ? el("f_yield").value.trim() : "",
-      time: method === "Espresso" ? el("f_time").value.trim() : ""
-    };
+      time: method === "Espresso" ? el("f_time").value.trim() : "" };
     if (editing) updateLog(bag.id, saved); else addLog(bag.id, saved);
     navigate("bag", { bagId: bag.id });
   };
-
-  if (editing) {
-    el("delLog").onclick = function () {
-      if (confirm("Delete this brew log?")) {
-        deleteLog(bag.id, log.id);
-        navigate("bag", { bagId: bag.id });
-      }
-    };
-  }
+  if (editing) el("delLog").onclick = function () {
+    if (confirm("Delete this brew log?")) { deleteLog(bag.id, log.id); navigate("bag", { bagId: bag.id }); }
+  };
 }
 
 // ---------- GRIND REFERENCE ----------
 function renderReference(view, header, back, action, fab) {
   var bag = getBag(route.bagId);
   if (!bag) { navigate("home"); return; }
-
   header.textContent = "Grind Reference";
   back.style.display = "block";
   back.onclick = function () { navigate("bag", { bagId: bag.id }); };
 
-  var logs = bag.logs || [];
-
-  // For each method, find the highest-rated log (ties -> most recent)
-  var byMethod = {};
+  var logs = bag.logs || [], byMethod = {};
   for (var i = 0; i < logs.length; i++) {
-    var lg = logs[i];
-    var cur = byMethod[lg.method];
-    var r = parseInt(lg.rating, 10) || 0;
+    var lg = logs[i], cur = byMethod[lg.method], r = parseInt(lg.rating, 10) || 0;
     if (!cur) { byMethod[lg.method] = lg; continue; }
     var cr = parseInt(cur.rating, 10) || 0;
-    if (r > cr || (r === cr && (lg.loggedAt || "") > (cur.loggedAt || ""))) {
-      byMethod[lg.method] = lg;
-    }
+    if (r > cr || (r === cr && (lg.loggedAt || "") > (cur.loggedAt || ""))) byMethod[lg.method] = lg;
   }
 
-  var methods = Object.keys(byMethod);
-  var html = '<div class="card static" style="cursor:default;"><div class="bag-name">' + esc(bag.name) + '</div>' +
+  var html = '<div class="card static"><div class="bag-name">' + esc(bag.name) + '</div>' +
     '<div class="bag-sub">Best-rated grind size per brew method</div></div>';
-
-  if (methods.length === 0) {
-    html += '<div class="empty" style="padding:32px 16px;">No brew logs yet — add some to build recommendations.</div>';
-  } else {
-    // Order by BREW_METHODS canonical order
-    BREW_METHODS.forEach(function (m) {
-      if (!byMethod[m]) return;
-      var best = byMethod[m];
-      var extra = "";
-      if (m === "Espresso") {
-        var parts = [];
-        if (best.dose) parts.push(best.dose + "g in");
-        if (best.yield) parts.push(best.yield + "g out");
-        if (best.time) parts.push(best.time + "s");
-        var s = calcScaledTime(best.time, best.yield);
-        var sBadge = s !== null
-          ? ' <span class="scaled-badge ' + (scaledInRange(s) ? 'scaled-good' : 'scaled-bad') + '">' + s.toFixed(1) + 's scaled</span>'
-          : '';
-        extra = '<div class="log-meta">' + (parts.length ? '<span>' + esc(parts.join(" · ")) + '</span>' : '') + '</div>' +
-                (sBadge ? '<div style="margin-top:8px;">' + sBadge + '</div>' : '');
-      }
-      html += '<div class="card static" style="cursor:default;">' +
-        '<div class="row-between"><div class="ref-method">' + esc(m) + '</div>' + beansHTML(best.rating) + '</div>' +
-        '<div class="grind-chips"><span class="chip">Grind: <strong>' + esc(best.grind) + '</strong></span></div>' +
-        extra +
-      '</div>';
-    });
-  }
-
+  var methods = Object.keys(byMethod);
+  if (methods.length === 0) html += '<div class="empty" style="padding:32px 16px;">No brew logs yet — add some to build recommendations.</div>';
+  else BREW_METHODS.forEach(function (m) {
+    if (!byMethod[m]) return;
+    var best = byMethod[m], extra = "";
+    if (m === "Espresso") {
+      var parts = [];
+      if (best.dose) parts.push(best.dose + "g in");
+      if (best.yield) parts.push(best.yield + "g out");
+      if (best.time) parts.push(best.time + "s");
+      var s = calcScaledTime(best.time, best.yield);
+      var sBadge = s !== null ? ' <span class="scaled-badge ' + (scaledInRange(s) ? "scaled-good" : "scaled-bad") + '">' + s.toFixed(1) + "s scaled</span>" : "";
+      extra = '<div class="log-meta">' + (parts.length ? "<span>" + esc(parts.join(" · ")) + "</span>" : "") + "</div>" +
+              (sBadge ? '<div style="margin-top:8px;">' + sBadge + "</div>" : "");
+    }
+    html += '<div class="card static"><div class="row-between"><div class="ref-method">' + esc(m) + "</div>" + beansHTML(best.rating) + "</div>" +
+      '<div class="grind-chips"><span class="chip">Grind: <strong>' + esc(best.grind) + "</strong></span></div>" + extra + "</div>";
+  });
   view.innerHTML = html;
 }
 
+// ---------- RECIPES GALLERY ----------
+function renderRecipesGallery(view, header, back, action, fab) {
+  header.textContent = "Recipe Cards";
+  back.style.display = "block";
+  back.onclick = function () { navigate("home"); };
+
+  var html = '<div class="bag-sub" style="margin-bottom:8px;">Tap any drink for its full recipe card. Reference only — your logs are never auto-filled.</div>';
+  BREW_METHODS.forEach(function (m) {
+    html += '<div class="section-title">' + esc(m) + "</div>";
+    ["Black", "White"].forEach(function (color) {
+      var list = COMBOS[m][color] || [];
+      list.forEach(function (prep) {
+        var rec = getRecipe(m, prep);
+        var vis = rec ? rec.visual : "espresso";
+        html += '<div class="gallery-item" onclick="openRecipe(\'' + esc(m).replace(/'/g, "\\'") + '\',\'' + color + '\',\'' + esc(prep).replace(/'/g, "\\'") + '\')">' +
+          '<div class="gallery-thumb">' + drinkSVG(vis, 40) + '</div>' +
+          '<div><div class="gallery-name">' + esc(prep) + '</div><div class="bag-sub">' + color + '</div></div>' +
+          '<div class="gallery-info info-btn" style="border:none;">i</div></div>';
+      });
+    });
+  });
+  view.innerHTML = html;
+}
+
+// ---------- RECIPE CARD OVERLAY ----------
+function openRecipe(method, color, prep) {
+  var rec = getRecipe(method, prep);
+  var vis = rec ? rec.visual : "espresso";
+
+  var rowsDef = [
+    ["Dose", rec && rec.dose], ["Grind", rec && rec.grind], ["Yield", rec && rec.yield],
+    ["Water temp", rec && rec.temp], ["Time", rec && rec.time], ["Milk", rec && rec.milk],
+    ["Ice", rec && rec.ice], ["Sugar", rec && rec.sugar]
+  ];
+  var rows = "";
+  rowsDef.forEach(function (r) {
+    if (r[1]) rows += '<div class="recipe-row"><span class="k">' + r[0] + '</span><span class="v">' + esc(r[1]) + "</span></div>";
+  });
+
+  var notes = (rec && rec.notes)
+    ? '<div class="recipe-notes"><span class="nlabel">Notes</span>' + esc(rec.notes) + "</div>"
+    : "";
+  if (!rec) rows = '<div class="recipe-row"><span class="v" style="text-align:left;color:var(--text-dim);">No reference recipe for this combination yet — log your own parameters.</span></div>';
+
+  var overlay = document.createElement("div");
+  overlay.className = "overlay";
+  overlay.innerHTML =
+    '<div class="recipe-sheet">' +
+      '<button class="sheet-close" aria-label="Close">&times;</button>' +
+      '<div class="sheet-grip"></div>' +
+      '<div class="recipe-hero"><div class="recipe-hero-bg">' + drinkSVG(vis, 150) + "</div></div>" +
+      '<div class="recipe-title">' + esc(prep) + "</div>" +
+      '<div class="recipe-sub">' + esc(method) + " &middot; " + esc(color) + "</div>" +
+      rows + notes +
+      '<div class="recipe-readonly">Reference card — does not change your log.</div>' +
+    "</div>";
+
+  function close() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }
+  overlay.addEventListener("click", function (e) { if (e.target === overlay) close(); });
+  overlay.querySelector(".sheet-close").onclick = close;
+  document.getElementById("app").appendChild(overlay);
+}
+
 // =====================================================================
-// BOOT
+// AUTH GATE + BOOT
 // =====================================================================
-render();
+function signIn() {
+  var provider = new firebase.auth.GoogleAuthProvider();
+  // Popups are often blocked on phones — redirect on mobile, popup on desktop.
+  if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) firebase.auth().signInWithRedirect(provider);
+  else firebase.auth().signInWithPopup(provider).catch(function (e) { console.error(e); });
+}
+function signOutUser() { firebase.auth().signOut(); }
+
+function showLogin() {
+  if (document.getElementById("loginScreen")) return;
+  var s = document.createElement("div");
+  s.id = "loginScreen"; s.className = "overlay"; s.style.justifyContent = "center";
+  s.innerHTML =
+    '<div class="recipe-sheet" style="border-radius:22px;max-width:340px;text-align:center;padding:40px 28px;">' +
+      '<div style="font-size:2.6rem;">&#9749;</div>' +
+      '<div class="recipe-title">Grind Log</div>' +
+      '<div class="bag-sub" style="margin:8px 0 22px;">Sign in to sync your coffee logs across your devices.</div>' +
+      '<button class="btn btn-primary" id="googleBtn">Sign in with Google</button>' +
+    '</div>';
+  document.getElementById("app").appendChild(s);
+  document.getElementById("googleBtn").onclick = signIn;
+}
+function hideLogin() { var s = document.getElementById("loginScreen"); if (s) s.remove(); }
+
+var unsub = null;
+firebase.auth().onAuthStateChanged(function (user) {
+  if (unsub) { unsub(); unsub = null; }          // detach previous user's listener
+  if (!user) {                                    // signed out
+    DOC = null; _cache = { bags: [] }; showLogin(); return;
+  }
+  hideLogin();                                    // signed in
+  DOC = db.collection("users").doc(user.uid);     // this user's own document
+  unsub = DOC.onSnapshot(function (snap) {
+    var d = snap.exists ? snap.data() : null;
+    _cache = (d && Array.isArray(d.bags)) ? d : { bags: [] };
+    render();
+  }, function (e) { console.error("Firestore listen failed", e); render(); });
+});
 </script>
 </body>
 </html>
