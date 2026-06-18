@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a120b">
+<title>Grind Log</title>
+<style>
+  :root {
+    --bg: #1a120b;
+    --surface: #241810;
+    --surface-2: #2f2015;
+    --border: #3a2a1c;
+    --text: #f3e9dc;
+    --text-dim: #b59e88;
+    --amber: #d99a4e;
+    --amber-strong: #e8a955;
+    --green: #4f9d69;
+    --green-bg: #1f3a2a;
+    --red: #c45b4a;
+    --red-bg: #3a1f1c;
+    --shadow: 0 4px 16px rgba(0,0,0,0.4);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.4;
+  }
+
+  #app {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* ---------- Header ---------- */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: linear-gradient(180deg, #241810 0%, #1f160d 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 58px;
+  }
+  header .title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .back-btn {
+    background: none;
+    border: none;
+    color: var(--amber);
+    font-size: 1.6rem;
+    line-height: 1;
+    padding: 4px 6px;
+    cursor: pointer;
+    min-width: 40px;
+  }
+  .header-action {
+    background: none;
+    border: none;
+    color: var(--amber);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 8px;
+  }
+
+  /* ---------- Content ---------- */
+  main {
+    flex: 1;
+    padding: 16px;
+    padding-bottom: 96px;
+  }
+
+  /* ---------- Cards ---------- */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: transform 0.08s ease;
+  }
+  .card:active { transform: scale(0.985); }
+  .card.static { cursor: default; }
+  .card.static:active { transform: none; }
+
+  .bag-name { font-size: 1.15rem; font-weight: 700; margin: 0 0 2px; }
+  .bag-sub { color: var(--text-dim); font-size: 0.88rem; margin: 0; }
+
+  .badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .badge-active { background: var(--green-bg); color: var(--green); }
+  .badge-finished { background: var(--surface-2); color: var(--text-dim); }
+  .badge-roast { background: var(--surface-2); color: var(--amber); }
+
+  .row-between { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
+  .grind-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .chip {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 5px 10px;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+  }
+  .chip strong { color: var(--text); font-weight: 700; }
+
+  /* ---------- Log cards ---------- */
+  .log-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+  .log-method { font-weight: 700; font-size: 1.02rem; }
+  .log-prep { color: var(--text-dim); font-size: 0.85rem; }
+  .log-meta { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 8px; font-size: 0.85rem; color: var(--text-dim); }
+  .log-meta b { color: var(--text); }
+  .log-date { color: var(--text-dim); font-size: 0.76rem; margin-top: 8px; }
+  .log-notes { margin-top: 8px; font-size: 0.88rem; color: var(--text-dim); font-style: italic; }
+
+  .scaled-badge {
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 10px;
+  }
+  .scaled-good { background: var(--green-bg); color: var(--green); }
+  .scaled-bad { background: var(--red-bg); color: var(--red); }
+
+  /* ---------- Stars (coffee beans) ---------- */
+  .beans { display: inline-flex; gap: 2px; font-size: 1.05rem; line-height: 1; }
+  .bean { color: #4a3826; }
+  .bean.filled { color: var(--amber-strong); }
+
+  /* ---------- Forms ---------- */
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-dim); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px; }
+  input[type=text], input[type=number], input[type=date], input[type=datetime-local], select, textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-size: 1rem;
+    padding: 13px 14px;
+    font-family: inherit;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  textarea { resize: vertical; min-height: 80px; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--amber); }
+  select {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23d99a4e' stroke-width='3'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 38px;
+  }
+
+  .seg { display: flex; flex-wrap: wrap; gap: 8px; }
+  .seg-opt {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 10px;
+    font-size: 0.92rem;
+    color: var(--text-dim);
+    cursor: pointer;
+    user-select: none;
+  }
+  .seg-opt.sel { background: var(--amber); color: #1a120b; border-color: var(--amber); font-weight: 700; }
+
+  .star-picker { display: flex; gap: 8px; }
+  .star-picker .bean { font-size: 2rem; cursor: pointer; }
+
+  .row2 { display: flex; gap: 12px; }
+  .row2 > .field { flex: 1; }
+
+  .live-scaled {
+    margin-top: 4px;
+    padding: 14px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 700;
+  }
+  .live-scaled .num { font-size: 1.5rem; display: block; }
+  .live-scaled .lbl { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: block;
+    width: 100%;
+    border: none;
+    border-radius: 14px;
+    padding: 16px;
+    font-size: 1.02rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    margin-bottom: 10px;
+  }
+  .btn-primary { background: var(--amber); color: #1a120b; }
+  .btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+  .btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid var(--red); }
+  .btn:active { filter: brightness(0.92); }
+
+  .fab {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    max-width: 448px;
+    z-index: 15;
+  }
+  .fab .btn { box-shadow: var(--shadow); margin: 0; }
+
+  .section-title { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-dim); margin: 22px 0 10px; }
+  .empty { text-align: center; color: var(--text-dim); padding: 48px 20px; }
+  .empty .big { font-size: 2.4rem; margin-bottom: 10px; }
+
+  .info-grid { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 10px; font-size: 0.9rem; }
+  .info-grid div { color: var(--text-dim); }
+  .info-grid b { color: var(--text); }
+
+  .hint { font-size: 0.78rem; color: var(--text-dim); margin-top: -6px; margin-bottom: 14px; }
+
+  .link-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 14px 16px; cursor: pointer; margin-bottom: 14px;
+  }
+  .link-row .arrow { color: var(--amber); font-size: 1.2rem; }
+
+  .ref-method { font-weight: 700; font-size: 1rem; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <button class="back-btn" id="backBtn" style="display:none;">‹</button>
+    <div class="title" id="headerTitle">Grind Log</div>
+    <button class="header-action" id="headerAction" style="display:none;"></button>
+  </header>
+  <main id="view"></main>
+  <div class="fab" id="fab" style="display:none;"></div>
+</div>
+
+<script>
+"use strict";
+
+/* =====================================================================
+   STORAGE LAYER
+   ---------------------------------------------------------------------
+   All persistence lives here and ONLY here. UI logic never touches
+   localStorage directly — it calls loadData() / saveData().
+
+   >>> PHASE 2 — FIREBASE MIGRATION POINT <<<
+   To swap localStorage for Firebase Firestore later:
+     - Replace the bodies of loadData() and saveData() below with
+       Firestore reads/writes (these can become async; if so, await
+       loadData() at call sites and make the render flow async).
+     - The data shape ({ bags: [...] }) and all helper accessors
+       (getBags, getBag, upsertBag, deleteBag, addLog, updateLog,
+       deleteLog) stay identical, so NO UI code needs to change.
+     - Suggested mapping: top-level collection "bags", each bag doc
+       holding a "logs" subcollection (or an embedded logs array to
+       mirror this exact structure with zero refactoring).
+   ===================================================================== */
+
+var STORAGE_KEY = "coffeeLog";
+
+// --- Core read ---
+function loadData() {
+  // PHASE 2: replace with Firestore fetch -> return { bags: [...] }
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { bags: [] };
+    var parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.bags)) return { bags: [] };
+    return parsed;
+  } catch (e) {
+    console.error("loadData failed", e);
+    return { bags: [] };
+  }
+}
+
+// --- Core write ---
+function saveData(data) {
+  // PHASE 2: replace with Firestore write of `data`
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {
+    console.error("saveData failed", e);
+    alert("Could not save data. Storage may be full or unavailable.");
+  }
+}
+
+// --- ID helper ---
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+// --- Bag accessors (all go through loadData/saveData) ---
+function getBags() {
+  return loadData().bags;
+}
+
+function getBag(bagId) {
+  return getBags().filter(function (b) { return b.id === bagId; })[0] || null;
+}
+
+function upsertBag(bag) {
+  var data = loadData();
+  var idx = -1;
+  for (var i = 0; i < data.bags.length; i++) {
+    if (data.bags[i].id === bag.id) { idx = i; break; }
+  }
+  if (idx === -1) {
+    bag.logs = bag.logs || [];
+    data.bags.push(bag);
+  } else {
+    bag.logs = data.bags[idx].logs || [];
+    data.bags[idx] = bag;
+  }
+  saveData(data);
+  return bag;
+}
+
+function deleteBag(bagId) {
+  var data = loadData();
+  data.bags = data.bags.filter(function (b) { return b.id !== bagId; });
+  saveData(data);
+}
+
+// --- Log accessors ---
+function addLog(bagId, log) {
+  var data = loadData();
+  var bag = data.bags.filter(function (b) { return b.id === bagId; })[0];
+  if (!bag) return;
+  bag.logs = bag.logs || [];
+  bag.logs.push(log);
+  saveData(data);
+}
+
+function updateLog(bagId, log) {
+  var data = loadData();
+  var bag = data.bags.filter(function (b) { return b.id === bagId; })[0];
+  if (!bag) return;
+  bag.logs = (bag.logs || []).map(function (l) { return l.id === log.id ? log : l; });
+  saveData(data);
+}
+
+function deleteLog(bagId, logId) {
+  var data = loadData();
+  var bag = data.bags.filter(function (b) { return b.id === bagId; })[0];
+  if (!bag) return;
+  bag.logs = (bag.logs || []).filter(function (l) { return l.id !== logId; });
+  saveData(data);
+}
+
+/* =====================================================================
+   END STORAGE LAYER  —  everything below is UI logic only
+   ===================================================================== */
+
+// --- Domain constants ---
+var BREW_METHODS = ["Espresso", "Moka Pot", "French Press", "AeroPress", "Pour Over", "Cold Brew"];
+var PREP_STYLES = ["Espresso", "Flat White", "Americano", "White Americano", "Latte", "Iced Latte", "Cappuccino", "Other"];
+var ROAST_LEVELS = ["Light", "Medium", "Dark"];
+
+// --- Scaled time (espresso) ---
+// Seconds to reach a 36g yield at the same flow rate.
+function calcScaledTime(time, yield_) {
+  var t = parseFloat(time), y = parseFloat(yield_);
+  if (!t || !y) return null;
+  return (t / y) * 36;
+}
+function scaledInRange(s) { return s !== null && s >= 25 && s <= 30; }
+
+// --- Small helpers ---
+function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+function el(id) { return document.getElementById(id); }
+
+function beansHTML(rating) {
+  rating = parseInt(rating, 10) || 0;
+  var html = '<span class="beans">';
+  for (var i = 1; i <= 5; i++) {
+    html += '<span class="bean' + (i <= rating ? ' filled' : '') + '">&#9679;</span>';
+  }
+  return html + '</span>';
+}
+
+function fmtDate(iso) {
+  if (!iso) return "";
+  var d = new Date(iso);
+  if (isNaN(d)) return esc(iso);
+  return d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+}
+function fmtDateTime(iso) {
+  if (!iso) return "";
+  var d = new Date(iso);
+  if (isNaN(d)) return esc(iso);
+  return d.toLocaleDateString(undefined, { day: "numeric", month: "short" }) + ", " +
+         d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+}
+
+// --- Router state ---
+var route = { screen: "home", bagId: null, logId: null };
+
+function navigate(screen, params) {
+  params = params || {};
+  route.screen = screen;
+  route.bagId = params.bagId != null ? params.bagId : route.bagId;
+  route.logId = params.logId !== undefined ? params.logId : null;
+  window.scrollTo(0, 0);
+  render();
+}
+
+// =====================================================================
+// RENDER
+// =====================================================================
+function render() {
+  var view = el("view");
+  var header = el("headerTitle");
+  var back = el("backBtn");
+  var action = el("headerAction");
+  var fab = el("fab");
+
+  back.style.display = "none";
+  action.style.display = "none";
+  fab.style.display = "none";
+  fab.innerHTML = "";
+  action.onclick = null;
+  back.onclick = null;
+
+  switch (route.screen) {
+    case "home": renderHome(view, header, back, action, fab); break;
+    case "bag": renderBagDetail(view, header, back, action, fab); break;
+    case "editBag": renderBagForm(view, header, back, action, fab); break;
+    case "editLog": renderLogForm(view, header, back, action, fab); break;
+    case "reference": renderReference(view, header, back, action, fab); break;
+  }
+}
+
+// ---------- HOME / BAG LIST ----------
+function renderHome(view, header, back, action, fab) {
+  header.textContent = "Grind Log";
+
+  var bags = getBags().slice();
+  // Active first, then by date opened (newest first)
+  bags.sort(function (a, b) {
+    if (!!a.finished !== !!b.finished) return a.finished ? 1 : -1;
+    return (b.dateOpened || "").localeCompare(a.dateOpened || "");
+  });
+
+  if (bags.length === 0) {
+    view.innerHTML =
+      '<div class="empty"><div class="big">&#9749;</div>' +
+      '<div>No coffee bags yet.</div>' +
+      '<div style="margin-top:6px;font-size:0.85rem;">Add your first bag to start logging brews.</div></div>';
+  } else {
+    var html = "";
+    var activeShown = false, finishedShown = false;
+    for (var i = 0; i < bags.length; i++) {
+      var b = bags[i];
+      if (!b.finished && !activeShown) { html += '<div class="section-title">Active</div>'; activeShown = true; }
+      if (b.finished && !finishedShown) { html += '<div class="section-title">Finished</div>'; finishedShown = true; }
+      html += bagCardHTML(b);
+    }
+    view.innerHTML = html;
+  }
+
+  fab.style.display = "block";
+  fab.innerHTML = '<button class="btn btn-primary" id="addBagBtn">+ Add Coffee Bag</button>';
+  el("addBagBtn").onclick = function () { navigate("editBag", { bagId: null }); };
+}
+
+function latestGrindByMethod(bag) {
+  // Returns { method: grindSize } using most recent log per method
+  var logs = (bag.logs || []).slice().sort(function (a, b) {
+    return (b.loggedAt || "").localeCompare(a.loggedAt || "");
+  });
+  var seen = {};
+  var out = [];
+  for (var i = 0; i < logs.length; i++) {
+    var m = logs[i].method;
+    if (!seen[m]) { seen[m] = true; out.push({ method: m, grind: logs[i].grind }); }
+  }
+  return out;
+}
+
+function bagCardHTML(b) {
+  var grinds = latestGrindByMethod(b);
+  var chips = "";
+  if (grinds.length) {
+    chips = '<div class="grind-chips">';
+    for (var i = 0; i < grinds.length; i++) {
+      chips += '<span class="chip">' + esc(grinds[i].method) + ': <strong>' + esc(grinds[i].grind) + '</strong></span>';
+    }
+    chips += '</div>';
+  } else {
+    chips = '<div class="grind-chips"><span class="chip">No brews logged yet</span></div>';
+  }
+  var statusBadge = b.finished
+    ? '<span class="badge badge-finished">Finished</span>'
+    : '<span class="badge badge-active">Active</span>';
+
+  return '<div class="card" onclick="navigate(\'bag\',{bagId:\'' + b.id + '\'})">' +
+    '<div class="row-between">' +
+      '<div style="min-width:0;"><div class="bag-name">' + esc(b.name) + '</div>' +
+      '<div class="bag-sub">' + esc(b.roaster || "") + '</div></div>' +
+      statusBadge +
+    '</div>' + chips +
+  '</div>';
+}
+
+// ---------- BAG DETAIL ----------
+function renderBagDetail(view, header, back, action, fab) {
+  var bag = getBag(route.bagId);
+  if (!bag) { navigate("home"); return; }
+
+  header.textContent = bag.name;
+  back.style.display = "block";
+  back.onclick = function () { navigate("home"); };
+  action.style.display = "block";
+  action.textContent = "Edit";
+  action.onclick = function () { navigate("editBag", { bagId: bag.id }); };
+
+  var html = "";
+
+  // Bag info card
+  var origin = bag.origin ? '<div><b>Origin</b> ' + esc(bag.origin) + '</div>' : '';
+  html += '<div class="card static">' +
+    '<div class="row-between"><div class="bag-name">' + esc(bag.name) + '</div>' +
+    (bag.finished ? '<span class="badge badge-finished">Finished</span>' : '<span class="badge badge-active">Active</span>') +
+    '</div>' +
+    '<div class="bag-sub">' + esc(bag.roaster || "") + '</div>' +
+    '<div class="info-grid">' +
+      '<div><b>Roast</b> ' + esc(bag.roast || "—") + '</div>' +
+      '<div><b>Opened</b> ' + (bag.dateOpened ? fmtDate(bag.dateOpened) : "—") + '</div>' +
+      origin +
+    '</div></div>';
+
+  // Grind reference link
+  html += '<div class="link-row" onclick="navigate(\'reference\',{bagId:\'' + bag.id + '\'})">' +
+    '<div><div class="ref-method">&#9737; Grind Reference</div>' +
+    '<div class="bag-sub">Best-rated grind per method</div></div>' +
+    '<div class="arrow">›</div></div>';
+
+  // Logs
+  var logs = (bag.logs || []).slice().sort(function (a, b) {
+    return (b.loggedAt || "").localeCompare(a.loggedAt || "");
+  });
+
+  html += '<div class="section-title">Brew Logs (' + logs.length + ')</div>';
+  if (logs.length === 0) {
+    html += '<div class="empty" style="padding:28px 16px;">No brews logged for this bag yet.</div>';
+  } else {
+    for (var i = 0; i < logs.length; i++) html += logCardHTML(bag.id, logs[i]);
+  }
+
+  view.innerHTML = html;
+
+  fab.style.display = "block";
+  fab.innerHTML = '<button class="btn btn-primary" id="addLogBtn">+ Add Brew Log</button>';
+  el("addLogBtn").onclick = function () { navigate("editLog", { bagId: bag.id, logId: null }); };
+}
+
+function logCardHTML(bagId, log) {
+  var meta = '<span><b>Grind</b> ' + esc(log.grind) + '</span>';
+  var scaledBadge = "";
+
+  if (log.method === "Espresso") {
+    if (log.dose) meta += '<span><b>Dose</b> ' + esc(log.dose) + 'g</span>';
+    if (log.yield) meta += '<span><b>Yield</b> ' + esc(log.yield) + 'g</span>';
+    if (log.time) meta += '<span><b>Time</b> ' + esc(log.time) + 's</span>';
+    var s = calcScaledTime(log.time, log.yield);
+    if (s !== null) {
+      scaledBadge = '<span class="scaled-badge ' + (scaledInRange(s) ? 'scaled-good' : 'scaled-bad') + '">' +
+        'Scaled ' + s.toFixed(1) + 's</span>';
+    }
+  }
+
+  var notes = log.notes ? '<div class="log-notes">&ldquo;' + esc(log.notes) + '&rdquo;</div>' : '';
+
+  return '<div class="card" onclick="navigate(\'editLog\',{bagId:\'' + bagId + '\',logId:\'' + log.id + '\'})">' +
+    '<div class="log-head">' +
+      '<div><span class="log-method">' + esc(log.method) + '</span> ' +
+      '<span class="log-prep">· ' + esc(log.prep) + '</span></div>' +
+      beansHTML(log.rating) +
+    '</div>' +
+    '<div class="log-meta">' + meta + '</div>' +
+    (scaledBadge ? '<div style="margin-top:10px;">' + scaledBadge + '</div>' : '') +
+    notes +
+    '<div class="log-date">' + fmtDateTime(log.loggedAt) + '</div>' +
+  '</div>';
+}
+
+// ---------- ADD / EDIT BAG ----------
+function renderBagForm(view, header, back, action, fab) {
+  var editing = !!route.bagId;
+  var bag = editing ? getBag(route.bagId) : null;
+  if (editing && !bag) { navigate("home"); return; }
+
+  header.textContent = editing ? "Edit Bag" : "New Bag";
+  back.style.display = "block";
+  back.onclick = function () { editing ? navigate("bag", { bagId: bag.id }) : navigate("home"); };
+
+  var today = new Date().toISOString().slice(0, 10);
+  var b = bag || { name: "", roaster: "", origin: "", roast: "Medium", dateOpened: today, finished: false };
+
+  var roastSeg = ROAST_LEVELS.map(function (r) {
+    return '<div class="seg-opt' + (b.roast === r ? ' sel' : '') + '" data-roast="' + r + '">' + r + '</div>';
+  }).join("");
+
+  view.innerHTML =
+    '<div class="field"><label>Name</label>' +
+      '<input type="text" id="f_name" placeholder="e.g. Monmouth Espresso Blend" value="' + esc(b.name) + '"></div>' +
+    '<div class="field"><label>Roaster</label>' +
+      '<input type="text" id="f_roaster" placeholder="e.g. Monmouth" value="' + esc(b.roaster) + '"></div>' +
+    '<div class="field"><label>Origin / Blend (optional)</label>' +
+      '<input type="text" id="f_origin" placeholder="e.g. Brazil / Ethiopia blend" value="' + esc(b.origin) + '"></div>' +
+    '<div class="field"><label>Roast Level</label><div class="seg" id="roastSeg">' + roastSeg + '</div></div>' +
+    '<div class="field"><label>Date Opened</label>' +
+      '<input type="date" id="f_dateOpened" value="' + esc(b.dateOpened || today) + '"></div>' +
+    '<div class="field"><label>Status</label><div class="seg" id="statusSeg">' +
+      '<div class="seg-opt' + (!b.finished ? ' sel' : '') + '" data-status="active">Active</div>' +
+      '<div class="seg-opt' + (b.finished ? ' sel' : '') + '" data-status="finished">Finished</div>' +
+    '</div></div>' +
+    '<button class="btn btn-primary" id="saveBag">' + (editing ? "Save Changes" : "Add Bag") + '</button>' +
+    (editing ? '<button class="btn btn-danger" id="delBag">Delete Bag</button>' : '');
+
+  // Segmented control wiring
+  var form = { roast: b.roast, finished: !!b.finished };
+  setupSeg("roastSeg", "roast", function (v) { form.roast = v; });
+  setupSeg("statusSeg", "status", function (v) { form.finished = (v === "finished"); });
+
+  el("saveBag").onclick = function () {
+    var name = el("f_name").value.trim();
+    if (!name) { alert("Please enter a bag name."); return; }
+    var saved = {
+      id: editing ? bag.id : genId(),
+      name: name,
+      roaster: el("f_roaster").value.trim(),
+      origin: el("f_origin").value.trim(),
+      roast: form.roast,
+      dateOpened: el("f_dateOpened").value,
+      finished: form.finished
+    };
+    upsertBag(saved);
+    navigate("bag", { bagId: saved.id });
+  };
+
+  if (editing) {
+    el("delBag").onclick = function () {
+      if (confirm("Delete this bag and all its brew logs?")) {
+        deleteBag(bag.id);
+        navigate("home");
+      }
+    };
+  }
+}
+
+function setupSeg(containerId, attr, cb) {
+  var c = el(containerId);
+  var opts = c.querySelectorAll(".seg-opt");
+  for (var i = 0; i < opts.length; i++) {
+    (function (opt) {
+      opt.onclick = function () {
+        for (var j = 0; j < opts.length; j++) opts[j].classList.remove("sel");
+        opt.classList.add("sel");
+        cb(opt.getAttribute("data-" + attr));
+      };
+    })(opts[i]);
+  }
+}
+
+// ---------- ADD / EDIT LOG ----------
+function renderLogForm(view, header, back, action, fab) {
+  var bag = getBag(route.bagId);
+  if (!bag) { navigate("home"); return; }
+  var editing = !!route.logId;
+  var log = editing ? (bag.logs || []).filter(function (l) { return l.id === route.logId; })[0] : null;
+  if (editing && !log) { navigate("bag", { bagId: bag.id }); return; }
+
+  header.textContent = editing ? "Edit Log" : "New Brew Log";
+  back.style.display = "block";
+  back.onclick = function () { navigate("bag", { bagId: bag.id }); };
+
+  // default datetime-local value (local time, not UTC)
+  function localDTValue(iso) {
+    var d = iso ? new Date(iso) : new Date();
+    var off = d.getTimezoneOffset();
+    var local = new Date(d.getTime() - off * 60000);
+    return local.toISOString().slice(0, 16);
+  }
+
+  var l = log || { method: "Espresso", prep: "Espresso", grind: "", loggedAt: new Date().toISOString(),
+                   notes: "", rating: 0, dose: "", yield: "", time: "" };
+
+  var methodOpts = BREW_METHODS.map(function (m) {
+    return '<option value="' + m + '"' + (l.method === m ? ' selected' : '') + '>' + m + '</option>';
+  }).join("");
+  var prepOpts = PREP_STYLES.map(function (p) {
+    return '<option value="' + p + '"' + (l.prep === p ? ' selected' : '') + '>' + p + '</option>';
+  }).join("");
+
+  view.innerHTML =
+    '<div class="field"><label>Brew Method</label><select id="f_method">' + methodOpts + '</select></div>' +
+    '<div class="field"><label>Preparation Style</label><select id="f_prep">' + prepOpts + '</select></div>' +
+    '<div class="field"><label>Grind Size</label>' +
+      '<input type="number" inputmode="decimal" step="any" id="f_grind" placeholder="e.g. 18" value="' + esc(l.grind) + '">' +
+      '<div class="hint">Use your grinder\'s own scale (numeric).</div></div>' +
+
+    // Espresso-only block
+    '<div id="espressoBlock" style="display:none;">' +
+      '<div class="row2">' +
+        '<div class="field"><label>Dose (g)</label>' +
+          '<input type="number" inputmode="decimal" step="any" id="f_dose" placeholder="18" value="' + esc(l.dose) + '"></div>' +
+        '<div class="field"><label>Yield (g)</label>' +
+          '<input type="number" inputmode="decimal" step="any" id="f_yield" placeholder="36" value="' + esc(l.yield) + '"></div>' +
+      '</div>' +
+      '<div class="field"><label>Time (seconds)</label>' +
+        '<input type="number" inputmode="decimal" step="any" id="f_time" placeholder="28" value="' + esc(l.time) + '"></div>' +
+      '<div class="field"><div class="live-scaled" id="liveScaled">' +
+        '<span class="lbl">Scaled time (to 36g)</span><span class="num" id="liveScaledNum">—</span>' +
+        '<span class="lbl" id="liveScaledHint">Target 25–30s</span></div></div>' +
+    '</div>' +
+
+    '<div class="field"><label>Date / Time</label>' +
+      '<input type="datetime-local" id="f_loggedAt" value="' + localDTValue(l.loggedAt) + '"></div>' +
+    '<div class="field"><label>Rating</label><div class="star-picker" id="starPicker"></div></div>' +
+    '<div class="field"><label>Notes (optional)</label>' +
+      '<textarea id="f_notes" placeholder="Taste, adjustments, observations...">' + esc(l.notes || "") + '</textarea></div>' +
+
+    '<button class="btn btn-primary" id="saveLog">' + (editing ? "Save Changes" : "Add Log") + '</button>' +
+    (editing ? '<button class="btn btn-danger" id="delLog">Delete Log</button>' : '');
+
+  // --- Star picker ---
+  var ratingState = { value: parseInt(l.rating, 10) || 0 };
+  function drawStars() {
+    var sp = el("starPicker");
+    sp.innerHTML = "";
+    for (var i = 1; i <= 5; i++) {
+      (function (n) {
+        var span = document.createElement("span");
+        span.className = "bean" + (n <= ratingState.value ? " filled" : "");
+        span.innerHTML = "&#9679;";
+        span.onclick = function () {
+          ratingState.value = (ratingState.value === n) ? 0 : n; // tap same star again to clear
+          drawStars();
+        };
+        sp.appendChild(span);
+      })(i);
+    }
+  }
+  drawStars();
+
+  // --- Espresso block toggle + live scaled time ---
+  function updateLiveScaled() {
+    var s = calcScaledTime(el("f_time").value, el("f_yield").value);
+    var box = el("liveScaled");
+    var num = el("liveScaledNum");
+    var hint = el("liveScaledHint");
+    if (s === null) {
+      num.textContent = "—";
+      box.style.background = "var(--surface-2)";
+      box.style.color = "var(--text-dim)";
+      hint.textContent = "Enter yield & time";
+    } else {
+      num.textContent = s.toFixed(1) + "s";
+      if (scaledInRange(s)) {
+        box.style.background = "var(--green-bg)";
+        box.style.color = "var(--green)";
+        hint.textContent = "In range (25–30s) ✓";
+      } else {
+        box.style.background = "var(--red-bg)";
+        box.style.color = "var(--red)";
+        hint.textContent = (s < 25 ? "Too fast — grind finer" : "Too slow — grind coarser");
+      }
+    }
+  }
+
+  function toggleEspresso() {
+    var isEsp = el("f_method").value === "Espresso";
+    el("espressoBlock").style.display = isEsp ? "block" : "none";
+    if (isEsp) updateLiveScaled();
+  }
+
+  el("f_method").onchange = toggleEspresso;
+  el("f_yield").oninput = updateLiveScaled;
+  el("f_time").oninput = updateLiveScaled;
+  toggleEspresso();
+
+  // --- Save ---
+  el("saveLog").onclick = function () {
+    var grind = el("f_grind").value.trim();
+    if (grind === "") { alert("Please enter a grind size."); return; }
+    var method = el("f_method").value;
+    var dtVal = el("f_loggedAt").value;
+    var saved = {
+      id: editing ? log.id : genId(),
+      method: method,
+      prep: el("f_prep").value,
+      grind: grind,
+      loggedAt: dtVal ? new Date(dtVal).toISOString() : new Date().toISOString(),
+      notes: el("f_notes").value.trim(),
+      rating: ratingState.value,
+      dose: method === "Espresso" ? el("f_dose").value.trim() : "",
+      yield: method === "Espresso" ? el("f_yield").value.trim() : "",
+      time: method === "Espresso" ? el("f_time").value.trim() : ""
+    };
+    if (editing) updateLog(bag.id, saved); else addLog(bag.id, saved);
+    navigate("bag", { bagId: bag.id });
+  };
+
+  if (editing) {
+    el("delLog").onclick = function () {
+      if (confirm("Delete this brew log?")) {
+        deleteLog(bag.id, log.id);
+        navigate("bag", { bagId: bag.id });
+      }
+    };
+  }
+}
+
+// ---------- GRIND REFERENCE ----------
+function renderReference(view, header, back, action, fab) {
+  var bag = getBag(route.bagId);
+  if (!bag) { navigate("home"); return; }
+
+  header.textContent = "Grind Reference";
+  back.style.display = "block";
+  back.onclick = function () { navigate("bag", { bagId: bag.id }); };
+
+  var logs = bag.logs || [];
+
+  // For each method, find the highest-rated log (ties -> most recent)
+  var byMethod = {};
+  for (var i = 0; i < logs.length; i++) {
+    var lg = logs[i];
+    var cur = byMethod[lg.method];
+    var r = parseInt(lg.rating, 10) || 0;
+    if (!cur) { byMethod[lg.method] = lg; continue; }
+    var cr = parseInt(cur.rating, 10) || 0;
+    if (r > cr || (r === cr && (lg.loggedAt || "") > (cur.loggedAt || ""))) {
+      byMethod[lg.method] = lg;
+    }
+  }
+
+  var methods = Object.keys(byMethod);
+  var html = '<div class="card static" style="cursor:default;"><div class="bag-name">' + esc(bag.name) + '</div>' +
+    '<div class="bag-sub">Best-rated grind size per brew method</div></div>';
+
+  if (methods.length === 0) {
+    html += '<div class="empty" style="padding:32px 16px;">No brew logs yet — add some to build recommendations.</div>';
+  } else {
+    // Order by BREW_METHODS canonical order
+    BREW_METHODS.forEach(function (m) {
+      if (!byMethod[m]) return;
+      var best = byMethod[m];
+      var extra = "";
+      if (m === "Espresso") {
+        var parts = [];
+        if (best.dose) parts.push(best.dose + "g in");
+        if (best.yield) parts.push(best.yield + "g out");
+        if (best.time) parts.push(best.time + "s");
+        var s = calcScaledTime(best.time, best.yield);
+        var sBadge = s !== null
+          ? ' <span class="scaled-badge ' + (scaledInRange(s) ? 'scaled-good' : 'scaled-bad') + '">' + s.toFixed(1) + 's scaled</span>'
+          : '';
+        extra = '<div class="log-meta">' + (parts.length ? '<span>' + esc(parts.join(" · ")) + '</span>' : '') + '</div>' +
+                (sBadge ? '<div style="margin-top:8px;">' + sBadge + '</div>' : '');
+      }
+      html += '<div class="card static" style="cursor:default;">' +
+        '<div class="row-between"><div class="ref-method">' + esc(m) + '</div>' + beansHTML(best.rating) + '</div>' +
+        '<div class="grind-chips"><span class="chip">Grind: <strong>' + esc(best.grind) + '</strong></span></div>' +
+        extra +
+      '</div>';
+    });
+  }
+
+  view.innerHTML = html;
+}
+
+// =====================================================================
+// BOOT
+// =====================================================================
+render();
+</script>
+</body>
+</html>
